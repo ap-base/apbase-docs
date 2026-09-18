@@ -3,17 +3,17 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Índice" href="../genindex.html"><link rel="search" title="Buscar" href="../search.html"><link rel="next" title="Inverse distance weighting" href="idw.html"><link rel="prev" title="Cross-validation" href="../user-guide/cross-validation.html">
+<link rel="index" title="Índice" href="../genindex.html"><link rel="search" title="Buscar" href="../search.html"><link rel="next" title="Ponderação pelo inverso da distância" href="idw.html"><link rel="prev" title="Validação cruzada" href="../user-guide/cross-validation.html">
         <link rel="prefetch" href="../_static/apbase.jpg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Methodology - APBase</title>
+        <title>Metodologia - APBase</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=ede0db95" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=eab67e96" />
     
     
 
@@ -48,7 +48,7 @@
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
-    <title>Contents</title>
+    <title>Conteúdo</title>
     <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
       <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
     </svg>
@@ -63,14 +63,14 @@
     </svg>
   </symbol>
   <symbol id="svg-arrow-right" viewBox="0 0 24 24">
-    <title>Expand</title>
+    <title>Expandir</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
   </symbol>
   <symbol id="svg-sun" viewBox="0 0 24 24">
-    <title>Light mode</title>
+    <title>Modo claro</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
@@ -85,7 +85,7 @@
     </svg>
   </symbol>
   <symbol id="svg-moon" viewBox="0 0 24 24">
-    <title>Dark mode</title>
+    <title>Modo escuro</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -93,7 +93,7 @@
     </svg>
   </symbol>
   <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
-    <title>Auto light/dark, in light mode</title>
+    <title>Modo automático, atualmente claro</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
       class="icon-custom-derived-from-feather-sun-and-tabler-moon">
@@ -110,7 +110,7 @@
     </svg>
   </symbol>
   <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
-    <title>Auto light/dark, in dark mode</title>
+    <title>Modo automático, atualmente escuro</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
       class="icon-custom-derived-from-feather-sun-and-tabler-moon">
@@ -169,7 +169,7 @@
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
-        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+        <button class="theme-toggle" aria-label="Alternar entre tema claro, escuro e automático">
           <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
           <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
@@ -198,28 +198,28 @@
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User Guide</a><input aria-label="Toggle navigation of User Guide" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/grid-and-mapping.html">Map and grid generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/filtering.html">Spatial filtering</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/variogram.html">Variogram</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Instalação</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Início rápido</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">Guia do usuário</a><input aria-label="Alternar navegação de Guia do usuário" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/grid-and-mapping.html">Geração de mapas e grades</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/filtering.html">Filtragem espacial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/variogram.html">Variograma</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/idw.html">IDW</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/kriging.html">Kriging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/cokriging.html">Cokriging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/cross-validation.html">Cross-validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/kriging.html">Krigagem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/cokriging.html">Cokrigagem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/cross-validation.html">Validação cruzada</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Methodology</a><input aria-label="Toggle navigation of Methodology" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="idw.html">Inverse distance weighting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kriging.html">Ordinary kriging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variogram-fitting.html">Variogram fitting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cross-validation.html">Cross-validation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="covariate-screening.html">Covariate screening</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cokriging.html">Cokriging</a></li>
+<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Metodologia</a><input aria-label="Alternar navegação de Metodologia" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="idw.html">Ponderação pelo inverso da distância</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kriging.html">Krigagem ordinária</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variogram-fitting.html">Ajuste de variogramas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cross-validation.html">Validação cruzada</a></li>
+<li class="toctree-l2"><a class="reference internal" href="covariate-screening.html">Seleção de covariáveis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cokriging.html">Cokrigagem</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">Referência da API</a><input aria-label="Alternar navegação de Referência da API" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/mapping.html">apbase.mapping</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/common.html">apbase.config</a></li>
 </ul>
@@ -240,17 +240,17 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
           </svg>
-          <span>Back to top</span>
+          <span>Voltar ao topo</span>
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="../_sources/methodology/index.md.txt" title="View this page">
+  <a class="muted-link" href="../_sources/methodology/index.md.txt" title="Ver o código desta página">
     <svg><use href="#svg-eye"></use></svg>
-    <span class="visually-hidden">View this page</span>
+    <span class="visually-hidden">Ver o código desta página</span>
   </a>
 </div>
 <div class="theme-toggle-container theme-toggle-content">
-            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+            <button class="theme-toggle" aria-label="Alternar entre tema claro, escuro e automático">
               <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
               <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
@@ -263,7 +263,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <section class="tex2jax_ignore mathjax_ignore" id="methodology">
-<h1>Methodology<a class="headerlink" href="#methodology" title="Link para este cabeçalho">¶</a></h1>
+<h1>Metodologia<a class="headerlink" href="#methodology" title="Link para este cabeçalho">¶</a></h1>
 <p>APBase’s interpolation methods are standard geostatistical techniques behind
 its intelligent mapping pipeline for precision agriculture. You do not need
 this section to generate maps with <code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code>; use it when you want to
@@ -275,16 +275,16 @@ functional shortcut. Co-kriging is documented here as an advanced method for
 workflows with validated secondary variables.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="idw.html">Inverse distance weighting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="kriging.html">Ordinary kriging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="variogram-fitting.html">Variogram fitting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cross-validation.html">Cross-validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="covariate-screening.html">Covariate screening</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cokriging.html">Cokriging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idw.html">Ponderação pelo inverso da distância</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kriging.html">Krigagem ordinária</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variogram-fitting.html">Ajuste de variogramas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cross-validation.html">Validação cruzada</a></li>
+<li class="toctree-l1"><a class="reference internal" href="covariate-screening.html">Seleção de covariáveis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cokriging.html">Cokrigagem</a></li>
 </ul>
 </div>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link para este cabeçalho">¶</a></h2>
+<h2>Referências<a class="headerlink" href="#references" title="Link para este cabeçalho">¶</a></h2>
 <p>The bibliography entries include DOI, publisher, or stable catalog links when
 available.</p>
 <div class="docutils container" id="id1">
@@ -362,9 +362,9 @@ available.</p>
           <a class="next-page" href="idw.html">
               <div class="page-info">
                 <div class="context">
-                  <span>Next</span>
+                  <span>Próxima</span>
                 </div>
-                <div class="title">Inverse distance weighting</div>
+                <div class="title">Ponderação pelo inverso da distância</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -372,10 +372,10 @@ available.</p>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
-                  <span>Previous</span>
+                  <span>Anterior</span>
                 </div>
                 
-                <div class="title">Cross-validation</div>
+                <div class="title">Validação cruzada</div>
                 
               </div>
             </a>
@@ -385,7 +385,7 @@ available.</p>
             <div class="copyright">
                 Copyright &#169; APBase
             </div>
-            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            Feito com <a href="https://www.sphinx-doc.org/">Sphinx</a> e <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a> com o tema
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             
@@ -403,14 +403,14 @@ available.</p>
       <div class="toc-sticky toc-scroll">
         <div class="toc-title-container">
           <span class="toc-title">
-            On this page
+            Nesta página
           </span>
         </div>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Methodology</a><ul>
-<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#">Metodologia</a><ul>
+<li><a class="reference internal" href="#references">Referências</a></li>
 </ul>
 </li>
 </ul>

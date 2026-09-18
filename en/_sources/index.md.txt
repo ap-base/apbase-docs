@@ -1,7 +1,5 @@
 # APBase
 
-<a href="../pt/index.html">🇧🇷 Ler em Português</a>
-
 **Intelligent, high-performance map generation for precision agriculture.**
 
 APBase turns irregular field data (yield-monitor sweeps, soil samples,
