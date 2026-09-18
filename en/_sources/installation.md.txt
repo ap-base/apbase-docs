@@ -1,0 +1,67 @@
+# Installation
+
+Install the Python core of APBase's high-performance mapping pipeline.
+
+## Requirements
+
+- Python 3.12+
+- `numpy`, `pyproj`, `shapely` (installed automatically as dependencies)
+
+## Install
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```bash
+pip install apbase
+```
+
+:::
+
+::::
+
+:::{note}
+`apbase` is not yet published to a public package index. Until then, install
+from the local distribution export or the (currently private) company
+repository:
+
+```bash
+pip install /path/to/apbase-python
+```
+
+```bash
+pip install git+https://github.com/ap-base/apbase-python.git
+```
+:::
+
+## Optional extras
+
+:::{tip}
+`GeoDataFrame`/`GeoSeries` inputs are supported by a few helper functions
+(e.g. target-coordinate extraction) when `geopandas` is installed -- skip
+it if you only pass plain NumPy arrays:
+
+```bash
+pip install geopandas
+```
+:::
+
+## Verify the install
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```python
+import apbase
+
+apbase.config["n_threads"] = 4
+print(apbase.Map, apbase.create_map)
+```
+
+:::
+
+::::

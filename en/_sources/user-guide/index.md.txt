@@ -1,0 +1,37 @@
+# User Guide
+
+Usage-level documentation for APBase. For production map generation, start
+with `apbase.Map`: it turns irregular agricultural point data (yield, soil,
+sensor readings) into production-ready maps, automatically handling filtering,
+grid generation, variogram fitting, cross-validation, mathematical model
+selection, and final interpolation. Use the lower-level classes only when you
+need manual control over one stage.
+
+:::{tip}
+If your goal is only to create the map, stay with `apbase.Map` or
+`apbase.create_map`. Reach for `SpatialFilter`, `Grid`, `IDW`, `Kriging`,
+and `cross_validate` directly only when you need diagnostics, experiments, or
+a forced method.
+:::
+
+```{toctree}
+:maxdepth: 1
+
+grid-and-mapping
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+
+filtering
+variogram
+idw
+kriging
+cokriging
+cross-validation
+```
+
+For the mathematics behind the automatic IDW-vs-kriging choice, see
+{doc}`../methodology/index`. For public signatures, see
+{doc}`../api/index`.

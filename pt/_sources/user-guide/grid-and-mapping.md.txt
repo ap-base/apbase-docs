@@ -1,0 +1,196 @@
+# Map and grid generation
+
+## Map: primary automatic pipeline
+
+`apbase.Map` is the main APBase entry point for creating maps from irregular
+point data. It runs the full intelligent, high-performance pipeline in one
+call:
+
+1. filter invalid rows, global outliers, and local spatial outliers;
+2. infer or use the interpolation boundary;
+3. build the regular target grid;
+4. fit one shared variogram;
+5. cross-validate IDW against ordinary kriging;
+6. select the mathematical model with lower leave-one-out RMSE;
+7. interpolate and return compact map points.
+
+## Map inputs
+
+`x`, `y` : array_like
+: Source coordinates. Projected coordinates are used as-is. Geographic lon/lat
+  is detected and converted internally to metric coordinates before distance
+  calculations.
+
+`z` : array_like
+: Source value for each coordinate pair. `x`, `y`, and `z` must be
+  one-dimensional and have the same length.
+
+`resolution` : float
+: Required output grid spacing. Use the projected coordinate unit for metric
+  input. Use meters for lon/lat input.
+
+`filter` : bool, default `True`
+: Run the spatial filter before cross-validation and interpolation.
+
+`bounds` : geometry, str, bytes, optional
+: Optional interpolation domain. Accepts a Shapely geometry, WKT, or WKB in
+  the same coordinate system as the original input. If omitted, APBase infers
+  a concave hull from the filtered source points.
+
+`geographic_mode` : {"local", "utm"}, optional
+: Projection strategy for detected lon/lat input. Leave as `None` for the
+  automatic choice.
+
+`power` : float, default `2.0`
+: IDW distance exponent. Used only if IDW wins cross-validation.
+
+`max_neighbors` : int, default `40`
+: Maximum local source points used per target during cross-validation and
+  final interpolation.
+
+`min_neighbors` : int, default `3`
+: Minimum local source points required to estimate a target.
+
+`max_cv_points` : int, default `500`
+: Maximum source points evaluated during leave-one-out cross-validation. Keeps
+  runtime bounded on large datasets.
+
+`seed` : int, optional
+: Random seed used when cross-validation samples a subset of source points.
+
+`filter_kwargs` : dict, optional
+: Extra options forwarded to `SpatialFilter` when `filter=True`.
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```python
+from apbase import Map
+
+mapper = Map(resolution=10.0)
+result = mapper(x, y, z)
+
+result.method                  # "idw" or "kriging", selected by validation error
+result.x, result.y, result.z   # compact point list inside the boundary
+
+X, Y, Z = result.to_raster()   # optional (ny, nx) arrays, NaN outside boundary
+array3d = result.to_array3d()  # np.dstack((X, Y, Z)) -> (ny, nx, 3)
+```
+
+:::
+
+::::
+
+`Map` is reusable. Configure it once, then run the same optimized pipeline
+against multiple datasets:
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```python
+from apbase import Map
+
+mapper = Map(resolution=10.0, bounds=my_polygon, seed=42)
+result_a = mapper.fit_generate(x_a, y_a, z_a)
+result_b = mapper(x_b, y_b, z_b)
+```
+
+:::
+
+::::
+
+`apbase.create_map` is the functional shortcut around the same automatic
+pipeline:
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```python
+import apbase
+
+result = apbase.create_map(x, y, z, resolution=10.0)
+```
+
+:::
+
+::::
+
+`create_map` accepts the same inputs as `Map`. Use it when you do not need to
+reuse a configured mapper.
+
+For performance, `Map` fits the variogram once and reuses it for the search
+radius, cross-validation, and final kriging model. The result remains compact:
+`result.x`, `result.y`, and `result.z` contain only target points inside the
+boundary; padded rasters are materialized only when `to_raster()` or
+`to_array3d()` is called.
+
+## MapResult
+
+`result.x`, `result.y`, `result.z` : numpy.ndarray
+: Compact map points inside the interpolation boundary.
+
+`result.method` : {"idw", "kriging"}
+: Mathematical model selected by validation error.
+
+`result.cross_validation`
+: IDW-vs-kriging validation report used for model selection.
+
+`result.filter_statistics`
+: Per-point diagnostics from the spatial filter, when filtering is enabled.
+
+`result.to_raster()`
+: Builds `(X, Y, Z)` arrays only when a dense raster is needed.
+
+`result.to_array3d()`
+: Builds one `(ny, nx, 3)` array equivalent to `np.dstack((X, Y, Z))`.
+
+## Grid: manual target generation
+
+`Grid` builds a regular target-point grid inside a boundary -- either a
+boundary you supply, or a concave hull inferred from source points.
+
+## Grid inputs
+
+`resolution` : float
+: Grid spacing in coordinate units.
+
+`boundary` : geometry, str, bytes, optional
+: Explicit grid boundary. Accepts Shapely geometry, WKT, or WKB.
+
+`x`, `y` : array_like, optional
+: Source coordinates used to infer the boundary when `boundary` is omitted.
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```python
+from apbase.grid import Grid
+
+# Infer the boundary from source points.
+targets = Grid(resolution=10.0).generate(x, y)
+
+# Or supply an explicit boundary (a Shapely geometry).
+targets = Grid(boundary=my_polygon, resolution=10.0).generate()
+```
+
+:::
+
+::::
+
+`Grid.from_wkt(wkt, resolution=10.0)` and `Grid.from_wkb(wkb,
+resolution=10.0)` build a boundary directly from WKT/WKB, without needing
+source points. `generate()` is `fit().points` in one call; use `fit()`
+directly to also read `fitted_boundary` (the prepared boundary actually
+used, after buffering).
+
+Use `Grid` directly only when you need manual targets for custom
+interpolation, diagnostics, or experiments outside the automatic `Map`
+pipeline. It is not required for normal map creation.

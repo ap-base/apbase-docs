@@ -1,0 +1,25 @@
+apbase.mapping
+==============
+
+Primary automatic map-generation API.
+
+Use :class:`apbase.mapping.Map` as the main entry point when you want APBase
+to choose the interpolation strategy automatically. It runs filtering,
+boundary/grid generation, one shared variogram fit, IDW-vs-kriging
+cross-validation, model selection by validation error, and final
+interpolation. Use :func:`apbase.mapping.create_map` when a functional
+one-shot call is more convenient.
+
+Each public callable below documents its inputs, defaults, return value, and
+usage examples from the source docstring.
+
+.. autofunction:: apbase.mapping.create_map
+
+.. autoclass:: apbase.mapping.Map
+   :members:
+   :show-inheritance:
+
+.. autoclass:: apbase.mapping.MapResult
+   :members:
+   :show-inheritance:
+   :no-index:
