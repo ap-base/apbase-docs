@@ -7,13 +7,13 @@
         <link rel="prefetch" href="../_static/apbase.jpg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>apbase.kriging - APBase</title>
+        <title>apbase.kriging - APbase</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=eab67e96" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=426e8d2d" />
     
     
 
@@ -40,6 +40,8 @@
   }
 </style></head>
   <body>
+    
+  
     
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
@@ -148,12 +150,12 @@
   </symbol>
 </svg>
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Alternar a barra de navegação">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Alternar o sumário da página">
 <label class="overlay sidebar-overlay" for="__navigation"></label>
 <label class="overlay toc-overlay" for="__toc"></label>
 
-<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+<a class="skip-to-content muted-link" href="#furo-main-content">Ir para o conteúdo</a>
 
 
 
@@ -165,7 +167,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">APBase</div></a>
+      <a href="../index.html"><div class="brand">APbase</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +191,7 @@
     <img class="sidebar-logo" src="../_static/apbase.jpg" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">APBase</span>
+  <span class="sidebar-brand-text">APbase</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Buscar" name="q" aria-label="Buscar">
@@ -200,6 +202,7 @@
   <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Instalação</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Início rápido</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../production.html">Production and cloud deployment</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">Guia do usuário</a><input aria-label="Alternar navegação de Guia do usuário" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/grid-and-mapping.html">Geração de mapas e grades</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/filtering.html">Filtragem espacial</a></li>
@@ -269,7 +272,7 @@
 local ordinary kriging. Target-grid generation lives in <code class="docutils literal notranslate"><span class="pre">apbase.grid</span></code>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="apbase.kriging.Kriging">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">apbase.kriging.</span></span><span class="sig-name descname"><span class="pre">Krigagem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Separador de parâmetros somente-nomeados (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#apbase.kriging.Kriging" title="Link para esta definição">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">apbase.kriging.</span></span><span class="sig-name descname"><span class="pre">Kriging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Separador de parâmetros somente-nomeados (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#apbase.kriging.Kriging" title="Link para esta definição">¶</a></dt>
 <dd><p>Base: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Fit a variogram model and interpolate values with local ordinary kriging.</p>
 <p>Stores finite source samples, fits or accepts a variogram model, and
@@ -376,7 +379,7 @@ docstring) on every access – not cached at construction time.</p>
 <dd class="field-even"><p>Fitted kriging interpolator.</p>
 </dd>
 <dt class="field-odd">Tipo de retorno<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#apbase.kriging.Kriging" title="apbase.kriging.Kriging">Krigagem</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#apbase.kriging.Kriging" title="apbase.kriging.Kriging">Kriging</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -442,7 +445,7 @@ docstring) on every access – not cached at construction time.</p>
 are <code class="docutils literal notranslate"><span class="pre">NaN</span></code> or infinite are ignored.</p>
 </dd>
 <dt class="field-odd">Tipo de retorno<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#apbase.kriging.Kriging" title="apbase.kriging.Kriging">Krigagem</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#apbase.kriging.Kriging" title="apbase.kriging.Kriging">Kriging</a></p>
 </dd>
 <dt class="field-even">Levanta<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError</strong> – If input arrays have inconsistent size or fewer than
@@ -578,7 +581,7 @@ see <a class="reference internal" href="variogram.html"><span class="doc">apbase
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; APBase
+                Copyright &#169; APbase
             </div>
             Feito com <a href="https://www.sphinx-doc.org/">Sphinx</a> e <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a> com o tema
             
@@ -632,7 +635,9 @@ see <a class="reference internal" href="variogram.html"><span class="doc">apbase
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=8946c2f5"></script>
+</div>
+  
+<script src="../_static/documentation_options.js?v=8946c2f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

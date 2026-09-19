@@ -3,17 +3,17 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Map and grid generation" href="grid-and-mapping.html"><link rel="prev" title="Quickstart" href="../quickstart.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Map and grid generation" href="grid-and-mapping.html"><link rel="prev" title="Production and cloud deployment" href="../production.html">
         <link rel="prefetch" href="../_static/apbase.jpg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>User Guide - APBase</title>
+        <title>User Guide - APbase</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=eab67e96" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=426e8d2d" />
     
     
 
@@ -40,6 +40,8 @@
   }
 </style></head>
   <body>
+    
+  
     
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
@@ -165,7 +167,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">APBase</div></a>
+      <a href="../index.html"><div class="brand">APbase</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +191,7 @@
     <img class="sidebar-logo" src="../_static/apbase.jpg" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">APBase</span>
+  <span class="sidebar-brand-text">APbase</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -200,6 +202,7 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../production.html">Production and cloud deployment</a></li>
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">User Guide</a><input aria-label="Toggle navigation of User Guide" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="grid-and-mapping.html">Map and grid generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filtering.html">Spatial filtering</a></li>
@@ -264,12 +267,14 @@
         <article role="main" id="furo-main-content">
           <section class="tex2jax_ignore mathjax_ignore" id="user-guide">
 <h1>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading">¶</a></h1>
-<p>Usage-level documentation for APBase. For production map generation, start
+<p>Usage-level documentation for APbase. For production map generation, start
 with <code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code>: it turns irregular agricultural point data (yield, soil,
 sensor readings) into production-ready maps, automatically handling filtering,
 grid generation, variogram fitting, cross-validation, mathematical model
 selection, and final interpolation. Use the lower-level classes only when you
 need manual control over one stage.</p>
+<p>For service, worker, container, and cloud deployment guidance, see
+<a class="reference internal" href="../production.html"><span class="doc">Production and cloud deployment</span></a>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>If your goal is only to create the map, stay with <code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code> or
@@ -303,14 +308,14 @@ a forced method.</p>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../quickstart.html">
+          <a class="prev-page" href="../production.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Quickstart</div>
+                <div class="title">Production and cloud deployment</div>
                 
               </div>
             </a>
@@ -318,7 +323,7 @@ a forced method.</p>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; APBase
+                Copyright &#169; APbase
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -338,7 +343,9 @@ a forced method.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+</div>
+  
+<script src="../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -3,7 +3,7 @@ apbase.mapping
 
 Primary automatic map-generation API.
 
-Use :class:`apbase.mapping.Map` as the main entry point when you want APBase
+Use :class:`apbase.mapping.Map` as the main entry point when you want APbase
 to choose the interpolation strategy automatically. It runs filtering,
 boundary/grid generation, one shared variogram fit, IDW-vs-kriging
 cross-validation, model selection by validation error, and final

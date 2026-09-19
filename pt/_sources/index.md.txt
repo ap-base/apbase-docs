@@ -1,15 +1,21 @@
-# APBase
+# APbase
 
-**Geração inteligente de mapas com alto desempenho para agricultura de precisão.**
+**Intelligent, high-performance map generation for precision agriculture.**
 
-O APBase transforma dados de campo irregulares (registros de monitores de
-produtividade, amostras de solo e grades de sensores) em mapas, sem exigir
-que o usuário escolha manualmente o modelo matemático. O principal ponto
-de entrada é `apbase.Map`: informe as coordenadas `x`/`y`, os valores e a
-resolução de saída. A biblioteca filtra os dados de origem, trata coordenadas
-geográficas de longitude/latitude quando necessário, constrói a grade,
-compara IDW com krigagem ordinária e utiliza o modelo com o menor erro de
-validação para esse conjunto de dados.
+APbase turns irregular field data (yield-monitor sweeps, soil samples,
+sensor grids) into maps without asking the user to choose the mathematical
+model by hand. The main entry point is `apbase.Map`: give it `x`/`y`
+coordinates, values, and an output resolution; it filters the source data,
+handles geographic lon/lat input when needed, builds the grid, compares IDW
+against ordinary kriging, and uses the model with the lowest validation error
+for that dataset.
+
+:::{important}
+APbase is a production-ready geospatial compute package. It is designed to be
+imported by cloud APIs, batch workers, MCP servers, AI agents, and containerized
+data pipelines that need deterministic map generation with native
+Fortran/OpenMP performance.
+:::
 
 ::::{tab-set}
 
@@ -21,44 +27,48 @@ import apbase
 
 result = apbase.Map(resolution=10.0)(x, y, z)
 
-result.method                  # "idw" ou "kriging", escolhido pelo erro de validação
-result.x, result.y, result.z   # pontos do mapa dentro do contorno, em formato compacto
+result.method                  # "idw" or "kriging", picked by validation error
+result.x, result.y, result.z   # compact map points inside the boundary
 ```
 
 :::
 
 ::::
 
-## Conteúdo
+## Contents
 
 ```{toctree}
 :maxdepth: 2
 
 installation
 quickstart
+production
 user-guide/index
 methodology/index
 api/index
 ```
 
-## Por que usar o APBase
+## Why APbase
 
-- **Um fluxo principal para gerar mapas.** `apbase.Map` reúne as etapas
-  necessárias para a maioria dos usuários: filtragem, geração do contorno
-  e da grade, ajuste de variograma compartilhado, validação cruzada deixando
-  um ponto de fora, seleção do modelo e interpolação final.
-- **Seleção automática do modelo matemático.** O processamento compara IDW
-  com krigagem ordinária e interpola com o método que apresenta o menor RMSE
-  nos dados, dispensando a comparação manual.
-- **Processamento orientado ao desempenho.** O fluxo automático reutiliza
-  o variograma ajustado na seleção do raio, na validação cruzada e na krigagem
-  final, evitando cálculos redundantes.
-- **Preparado para pontos irregulares e dados com ruído.** O processamento
-  remove registros inválidos, valores atípicos globais e valores atípicos
-  espaciais locais antes da interpolação.
-- **Valores padrão adequados aos dados.** O raio de busca de `IDW`/`Kriging`
-  utiliza o alcance do variograma ajustado quando não é informado explicitamente.
+- **One primary map pipeline.** `apbase.Map` is the path most users need:
+  filtering, boundary/grid generation, one shared variogram fit,
+  leave-one-out cross-validation, model selection, and final interpolation.
+- **Automatic mathematical model selection.** The pipeline compares IDW
+  against ordinary kriging and interpolates with whichever has the lower RMSE
+  on the actual dataset -- no manual comparison step.
+- **Performance-oriented orchestration.** The automatic pipeline reuses the
+  fitted variogram for radius selection, cross-validation, and final kriging,
+  avoiding redundant numerical work.
+- **Production/cloud deployment fit.** APbase has a small array-in/result-out
+  API, process-wide runtime controls, compact outputs, and no dependency on a
+  web framework, database, desktop GIS, or notebook runtime.
+- **Built for irregular, noisy point data.** The pipeline removes invalid
+  rows, global outliers, and local spatial outliers before interpolation ever
+  runs.
+- **Sensible defaults.** Search radius for `IDW`/`Kriging` falls back to a
+  fitted variogram's range when not given explicitly.
 
-Consulte {doc}`quickstart` para um exemplo completo. Consulte o
-{doc}`user-guide/index` e a {doc}`methodology/index` para obter controle
-avançado ou examinar a matemática por trás da escolha automática.
+See {doc}`quickstart` for a full worked example and {doc}`production` for
+deployment guidance. Use {doc}`user-guide/index` and
+{doc}`methodology/index` when you need advanced control or want to audit the
+mathematics behind the automatic choice.

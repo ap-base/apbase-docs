@@ -1,6 +1,6 @@
 # Quickstart
 
-`apbase.Map` is the primary entry point into APBase's intelligent mapping
+`apbase.Map` is the primary entry point into APbase's intelligent mapping
 pipeline. Give it `x`/`y`/`z` and a resolution; it filters the source data,
 builds the target grid, fits the variogram, cross-validates IDW against
 ordinary kriging, selects the mathematical model with the lower RMSE, and
@@ -29,7 +29,7 @@ coordinates are restored to the original coordinate system.
 
 `bounds` : geometry, str, bytes, optional
 : Optional interpolation boundary. Pass a Shapely geometry, WKT, or WKB in
-  the same coordinate system as the original `x`/`y`. If omitted, APBase
+  the same coordinate system as the original `x`/`y`. If omitted, APbase
   infers the boundary from the filtered points.
 
 ## Run the pipeline

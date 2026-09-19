@@ -4,7 +4,7 @@
 on the same source data using leave-one-out cross-validation, sharing one
 variogram/radius and one spatial index between both methods.
 
-This is the decision step behind `apbase.Map`: it is how APBase chooses the
+This is the decision step behind `apbase.Map`: it is how APbase chooses the
 mathematical model with the lowest validation error for the current dataset.
 Call it directly only when you want to inspect that decision.
 
@@ -40,7 +40,7 @@ result.idw.rmse, result.kriging.rmse
 : Seed for the validation subsample.
 
 `radius` : float, optional
-: Shared local search radius for IDW and kriging. If omitted, APBase derives
+: Shared local search radius for IDW and kriging. If omitted, APbase derives
   it from the fitted variogram.
 
 `power` : float, default `2.0`

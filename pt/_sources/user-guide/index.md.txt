@@ -1,11 +1,14 @@
 # User Guide
 
-Usage-level documentation for APBase. For production map generation, start
+Usage-level documentation for APbase. For production map generation, start
 with `apbase.Map`: it turns irregular agricultural point data (yield, soil,
 sensor readings) into production-ready maps, automatically handling filtering,
 grid generation, variogram fitting, cross-validation, mathematical model
 selection, and final interpolation. Use the lower-level classes only when you
 need manual control over one stage.
+
+For service, worker, container, and cloud deployment guidance, see
+{doc}`../production`.
 
 :::{tip}
 If your goal is only to create the map, stay with `apbase.Map` or

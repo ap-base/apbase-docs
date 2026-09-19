@@ -1,0 +1,145 @@
+# Production and cloud deployment
+
+APbase is meant to run as production infrastructure, not only as an
+interactive analysis library. The package exposes a small Python API over
+native Fortran/OpenMP kernels so map generation can be embedded directly in
+cloud services, asynchronous workers, data pipelines, MCP servers, and AI
+agent backends.
+
+## Where APbase fits
+
+Use APbase as the geospatial compute layer inside:
+
+- API services that receive field points and return interpolated maps;
+- queue or batch workers that process uploaded yield, soil, or sensor files;
+- container jobs on Kubernetes, Cloud Run, ECS/Fargate, Azure Container Apps,
+  or similar managed runtimes;
+- MCP servers and agent tools that need deterministic map generation;
+- scheduled ETL/ELT pipelines that write compact map points or rasters to
+  object storage, Parquet, databases, or downstream GIS services.
+
+APbase does not require a web framework, database, message broker, desktop GIS,
+or notebook runtime. It is a normal Python package: pass arrays in, receive a
+`MapResult` back.
+
+## Operational properties
+
+- **Stable production entry point.** Use `apbase.Map` or
+  `apbase.create_map`; lower-level classes are available for diagnostics and
+  advanced workflows.
+- **Native performance.** Critical filtering, variogram, IDW, kriging, and
+  cross-validation work runs through compiled numerical kernels instead of
+  Python point loops.
+- **Cloud-friendly runtime.** Wheels include the native extension artifacts;
+  runtime containers should not need a Fortran compiler when installing a
+  built wheel.
+- **Bounded resource controls.** `max_cv_points`, `max_neighbors`,
+  `apbase.config["grid_max_points_ceiling"]`, and variogram pair limits keep
+  CPU and memory budgets explicit.
+- **Compact outputs by default.** `result.x`, `result.y`, and `result.z`
+  contain only target points inside the interpolation boundary. Dense rasters
+  are materialized only when `result.to_raster()` or `result.to_array3d()` is
+  called.
+- **Process-level threading.** `apbase.config["n_threads"]` and
+  `APBASE_N_THREADS` control OpenMP parallelism for each worker process.
+
+## Service pattern
+
+Set process-wide runtime options once during service startup. Do not change
+global configuration per request.
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```python
+import os
+
+import numpy as np
+
+import apbase
+
+apbase.config["n_threads"] = int(os.getenv("APBASE_N_THREADS", "2"))
+apbase.config["grid_max_points_ceiling"] = int(
+    os.getenv("APBASE_GRID_MAX_POINTS", "100000000")
+)
+
+
+def build_map_response(x, y, z, *, resolution, bounds=None):
+    result = apbase.create_map(
+        np.ascontiguousarray(x, dtype=np.float64),
+        np.ascontiguousarray(y, dtype=np.float64),
+        np.ascontiguousarray(z, dtype=np.float64),
+        resolution=resolution,
+        bounds=bounds,
+        max_cv_points=500,
+        max_neighbors=40,
+        seed=42,
+    )
+
+    selected_cv = getattr(result.cross_validation, result.method)
+    return {
+        "method": result.method,
+        "x": result.x,
+        "y": result.y,
+        "z": result.z,
+        "rmse": selected_cv.rmse,
+        "n_source_points": result.n_source_points,
+    }
+```
+
+:::
+
+::::
+
+For concurrent web services, prefer `apbase.create_map(...)` per request or
+instantiate `Map` inside the request/job. A reusable `Map` instance is useful
+for sequential jobs, but it stores the last `result` on the instance.
+
+## Container and worker sizing
+
+For predictable latency and CPU cost, size process workers and OpenMP threads
+together:
+
+```text
+process_workers * APBASE_N_THREADS <= available_vCPU
+```
+
+Examples:
+
+- 2 vCPU container: `process_workers=1`, `APBASE_N_THREADS=2`
+- 4 vCPU container: `process_workers=2`, `APBASE_N_THREADS=2`
+- latency-sensitive batch job: `process_workers=1`, `APBASE_N_THREADS` equal
+  to the allocated vCPU count
+
+Avoid running many Python workers where each worker also uses many OpenMP
+threads; that oversubscribes CPU and usually makes kriging slower.
+
+## Data contract
+
+- Use one-dimensional numeric arrays for `x`, `y`, and `z`.
+- Prefer contiguous `float64` arrays at service boundaries to avoid hidden
+  copies.
+- Projected metric coordinates are used directly.
+- Geographic lon/lat input is accepted by `Map`/`create_map`; pass
+  `resolution` in meters.
+- Pass `bounds` as a Shapely geometry, WKT, or WKB when the interpolation
+  domain is known.
+- Keep dense raster creation at the edge of the pipeline. Store compact
+  `MapResult` points unless a downstream consumer specifically needs a padded
+  `(X, Y, Z)` raster.
+
+## Recommended deployment flow
+
+1. Build a wheel in CI or in a Docker builder stage.
+2. Install the built wheel into a slim runtime image.
+3. Set `APBASE_N_THREADS` and any ceiling overrides in the service
+   environment.
+4. Run a small startup smoke test that imports `apbase`, builds a tiny map, and
+   verifies native extensions load correctly.
+5. Keep API, queue, storage, and authentication code outside APbase; treat this
+   package as the deterministic geospatial kernel.
+
+See {doc}`installation` for install commands and {doc}`quickstart` for the
+minimal map-generation call.

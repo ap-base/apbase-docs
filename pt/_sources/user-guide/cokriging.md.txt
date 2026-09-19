@@ -138,7 +138,7 @@ estimates = ck.interpolate(targets)
   screening assumption and no per-secondary shape choice to tune.
 
 `radius` : float, optional
-: Local search radius. If omitted, APBase derives it from the primary
+: Local search radius. If omitted, APbase derives it from the primary
   variogram.
 
 `max_neighbors`, `min_neighbors` : int

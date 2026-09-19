@@ -2,7 +2,7 @@
 
 ## Map: primary automatic pipeline
 
-`apbase.Map` is the main APBase entry point for creating maps from irregular
+`apbase.Map` is the main APbase entry point for creating maps from irregular
 point data. It runs the full intelligent, high-performance pipeline in one
 call:
 
@@ -34,7 +34,7 @@ call:
 
 `bounds` : geometry, str, bytes, optional
 : Optional interpolation domain. Accepts a Shapely geometry, WKT, or WKB in
-  the same coordinate system as the original input. If omitted, APBase infers
+  the same coordinate system as the original input. If omitted, APbase infers
   a concave hull from the filtered source points.
 
 `geographic_mode` : {"local", "utm"}, optional

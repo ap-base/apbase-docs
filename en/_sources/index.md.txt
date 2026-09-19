@@ -1,14 +1,21 @@
-# APBase
+# APbase
 
 **Intelligent, high-performance map generation for precision agriculture.**
 
-APBase turns irregular field data (yield-monitor sweeps, soil samples,
+APbase turns irregular field data (yield-monitor sweeps, soil samples,
 sensor grids) into maps without asking the user to choose the mathematical
 model by hand. The main entry point is `apbase.Map`: give it `x`/`y`
 coordinates, values, and an output resolution; it filters the source data,
 handles geographic lon/lat input when needed, builds the grid, compares IDW
 against ordinary kriging, and uses the model with the lowest validation error
 for that dataset.
+
+:::{important}
+APbase is a production-ready geospatial compute package. It is designed to be
+imported by cloud APIs, batch workers, MCP servers, AI agents, and containerized
+data pipelines that need deterministic map generation with native
+Fortran/OpenMP performance.
+:::
 
 ::::{tab-set}
 
@@ -35,12 +42,13 @@ result.x, result.y, result.z   # compact map points inside the boundary
 
 installation
 quickstart
+production
 user-guide/index
 methodology/index
 api/index
 ```
 
-## Why APBase
+## Why APbase
 
 - **One primary map pipeline.** `apbase.Map` is the path most users need:
   filtering, boundary/grid generation, one shared variogram fit,
@@ -51,12 +59,16 @@ api/index
 - **Performance-oriented orchestration.** The automatic pipeline reuses the
   fitted variogram for radius selection, cross-validation, and final kriging,
   avoiding redundant numerical work.
+- **Production/cloud deployment fit.** APbase has a small array-in/result-out
+  API, process-wide runtime controls, compact outputs, and no dependency on a
+  web framework, database, desktop GIS, or notebook runtime.
 - **Built for irregular, noisy point data.** The pipeline removes invalid
   rows, global outliers, and local spatial outliers before interpolation ever
   runs.
 - **Sensible defaults.** Search radius for `IDW`/`Kriging` falls back to a
   fitted variogram's range when not given explicitly.
 
-See {doc}`quickstart` for a full worked example. Use
-{doc}`user-guide/index` and {doc}`methodology/index` when you need advanced
-control or want to audit the mathematics behind the automatic choice.
+See {doc}`quickstart` for a full worked example and {doc}`production` for
+deployment guidance. Use {doc}`user-guide/index` and
+{doc}`methodology/index` when you need advanced control or want to audit the
+mathematics behind the automatic choice.

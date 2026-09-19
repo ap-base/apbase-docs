@@ -3,11 +3,11 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Quickstart" href="quickstart.html"><link rel="prev" title="APbase" href="index.html">
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="User Guide" href="user-guide/index.html"><link rel="prev" title="Quickstart" href="quickstart.html">
         <link rel="prefetch" href="_static/apbase.jpg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Installation - APbase</title>
+        <title>Production and cloud deployment - APbase</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -200,9 +200,9 @@
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="production.html">Production and cloud deployment</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Production and cloud deployment</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="user-guide/index.html">User Guide</a><input aria-label="Toggle navigation of User Guide" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/grid-and-mapping.html">Map and grid generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/filtering.html">Spatial filtering</a></li>
@@ -247,7 +247,7 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="_sources/installation.md.txt" title="View this page">
+  <a class="muted-link" href="_sources/production.md.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -265,87 +265,148 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section class="tex2jax_ignore mathjax_ignore" id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
-<p>Install the Python core of APbase’s high-performance mapping pipeline.</p>
-<p>For production deployments, install APbase as a normal package inside the
-runtime used by your API service, worker, MCP server, agent backend, or batch
-container. See <a class="reference internal" href="production.html"><span class="doc">Production and cloud deployment</span></a> for cloud/container sizing guidance.</p>
-<section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+          <section class="tex2jax_ignore mathjax_ignore" id="production-and-cloud-deployment">
+<h1>Production and cloud deployment<a class="headerlink" href="#production-and-cloud-deployment" title="Link to this heading">¶</a></h1>
+<p>APbase is meant to run as production infrastructure, not only as an
+interactive analysis library. The package exposes a small Python API over
+native Fortran/OpenMP kernels so map generation can be embedded directly in
+cloud services, asynchronous workers, data pipelines, MCP servers, and AI
+agent backends.</p>
+<section id="where-apbase-fits">
+<h2>Where APbase fits<a class="headerlink" href="#where-apbase-fits" title="Link to this heading">¶</a></h2>
+<p>Use APbase as the geospatial compute layer inside:</p>
 <ul class="simple">
-<li><p>Python 3.12+</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">numpy</span></code>, <code class="docutils literal notranslate"><span class="pre">pyproj</span></code>, <code class="docutils literal notranslate"><span class="pre">shapely</span></code> (installed automatically as dependencies)</p></li>
+<li><p>API services that receive field points and return interpolated maps;</p></li>
+<li><p>queue or batch workers that process uploaded yield, soil, or sensor files;</p></li>
+<li><p>container jobs on Kubernetes, Cloud Run, ECS/Fargate, Azure Container Apps,
+or similar managed runtimes;</p></li>
+<li><p>MCP servers and agent tools that need deterministic map generation;</p></li>
+<li><p>scheduled ETL/ELT pipelines that write compact map points or rasters to
+object storage, Parquet, databases, or downstream GIS services.</p></li>
+</ul>
+<p>APbase does not require a web framework, database, message broker, desktop GIS,
+or notebook runtime. It is a normal Python package: pass arrays in, receive a
+<code class="docutils literal notranslate"><span class="pre">MapResult</span></code> back.</p>
+</section>
+<section id="operational-properties">
+<h2>Operational properties<a class="headerlink" href="#operational-properties" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Stable production entry point.</strong> Use <code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code> or
+<code class="docutils literal notranslate"><span class="pre">apbase.create_map</span></code>; lower-level classes are available for diagnostics and
+advanced workflows.</p></li>
+<li><p><strong>Native performance.</strong> Critical filtering, variogram, IDW, kriging, and
+cross-validation work runs through compiled numerical kernels instead of
+Python point loops.</p></li>
+<li><p><strong>Cloud-friendly runtime.</strong> Wheels include the native extension artifacts;
+runtime containers should not need a Fortran compiler when installing a
+built wheel.</p></li>
+<li><p><strong>Bounded resource controls.</strong> <code class="docutils literal notranslate"><span class="pre">max_cv_points</span></code>, <code class="docutils literal notranslate"><span class="pre">max_neighbors</span></code>,
+<code class="docutils literal notranslate"><span class="pre">apbase.config[&quot;grid_max_points_ceiling&quot;]</span></code>, and variogram pair limits keep
+CPU and memory budgets explicit.</p></li>
+<li><p><strong>Compact outputs by default.</strong> <code class="docutils literal notranslate"><span class="pre">result.x</span></code>, <code class="docutils literal notranslate"><span class="pre">result.y</span></code>, and <code class="docutils literal notranslate"><span class="pre">result.z</span></code>
+contain only target points inside the interpolation boundary. Dense rasters
+are materialized only when <code class="docutils literal notranslate"><span class="pre">result.to_raster()</span></code> or <code class="docutils literal notranslate"><span class="pre">result.to_array3d()</span></code> is
+called.</p></li>
+<li><p><strong>Process-level threading.</strong> <code class="docutils literal notranslate"><span class="pre">apbase.config[&quot;n_threads&quot;]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">APBASE_N_THREADS</span></code> control OpenMP parallelism for each worker process.</p></li>
 </ul>
 </section>
-<section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Link to this heading">¶</a></h2>
+<section id="service-pattern">
+<h2>Service pattern<a class="headerlink" href="#service-pattern" title="Link to this heading">¶</a></h2>
+<p>Set process-wide runtime options once during service startup. Do not change
+global configuration per request.</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
 <label class="sd-tab-label" data-sync-group="tab" data-sync-id="python" for="sd-tab-item-0">
 Python</label><div class="sd-tab-content docutils">
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>apbase
-</pre></div>
-</div>
-</div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">apbase</span></code> is not yet published to a public package index. Until then, install
-from the local distribution export or the (currently private) company
-repository:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>/path/to/apbase-python
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/ap-base/apbase-python.git
-</pre></div>
-</div>
-</div>
-</section>
-<section id="optional-extras">
-<h2>Optional extras<a class="headerlink" href="#optional-extras" title="Link to this heading">¶</a></h2>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p><code class="docutils literal notranslate"><span class="pre">GeoDataFrame</span></code>/<code class="docutils literal notranslate"><span class="pre">GeoSeries</span></code> inputs are supported by a few helper functions
-(e.g. target-coordinate extraction) when <code class="docutils literal notranslate"><span class="pre">geopandas</span></code> is installed – skip
-it if you only pass plain NumPy arrays:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>geopandas
-</pre></div>
-</div>
-</div>
-</section>
-<section id="verify-the-install">
-<h2>Verify the install<a class="headerlink" href="#verify-the-install" title="Link to this heading">¶</a></h2>
-<div class="sd-tab-set docutils">
-<input checked="checked" id="sd-tab-item-1" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" data-sync-group="tab" data-sync-id="python" for="sd-tab-item-1">
-Python</label><div class="sd-tab-content docutils">
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">apbase</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="n">apbase</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"n_threads"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">apbase</span><span class="o">.</span><span class="n">Map</span><span class="p">,</span> <span class="n">apbase</span><span class="o">.</span><span class="n">create_map</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</section>
-<section id="production-runtime">
-<h2>Production runtime<a class="headerlink" href="#production-runtime" title="Link to this heading">¶</a></h2>
-<p>Use a built wheel in production images whenever possible. A typical container
-build compiles native Fortran/OpenMP extensions in a builder stage, repairs or
-packages the wheel, and installs that wheel into a slim runtime stage.</p>
-<p>Configure CPU parallelism at process startup:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">APBASE_N_THREADS</span><span class="o">=</span><span class="m">2</span>
-</pre></div>
-</div>
-<p>or in Python before handling work:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">apbase</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="n">apbase</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"n_threads"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">apbase</span>
+
+<span class="n">apbase</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"n_threads"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"APBASE_N_THREADS"</span><span class="p">,</span> <span class="s2">"2"</span><span class="p">))</span>
+<span class="n">apbase</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">"grid_max_points_ceiling"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"APBASE_GRID_MAX_POINTS"</span><span class="p">,</span> <span class="s2">"100000000"</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">build_map_response</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">resolution</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">apbase</span><span class="o">.</span><span class="n">create_map</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+        <span class="n">max_cv_points</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+        <span class="n">max_neighbors</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">selected_cv</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">cross_validation</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"method"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+        <span class="s2">"z"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+        <span class="s2">"rmse"</span><span class="p">:</span> <span class="n">selected_cv</span><span class="o">.</span><span class="n">rmse</span><span class="p">,</span>
+        <span class="s2">"n_source_points"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">n_source_points</span><span class="p">,</span>
+    <span class="p">}</span>
 </pre></div>
 </div>
-<p>Keep <code class="docutils literal notranslate"><span class="pre">workers</span> <span class="pre">*</span> <span class="pre">APBASE_N_THREADS</span></code> at or below the vCPU allocated to the
-service to avoid CPU oversubscription.</p>
+</div>
+</div>
+<p>For concurrent web services, prefer <code class="docutils literal notranslate"><span class="pre">apbase.create_map(...)</span></code> per request or
+instantiate <code class="docutils literal notranslate"><span class="pre">Map</span></code> inside the request/job. A reusable <code class="docutils literal notranslate"><span class="pre">Map</span></code> instance is useful
+for sequential jobs, but it stores the last <code class="docutils literal notranslate"><span class="pre">result</span></code> on the instance.</p>
+</section>
+<section id="container-and-worker-sizing">
+<h2>Container and worker sizing<a class="headerlink" href="#container-and-worker-sizing" title="Link to this heading">¶</a></h2>
+<p>For predictable latency and CPU cost, size process workers and OpenMP threads
+together:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>process_workers * APBASE_N_THREADS &lt;= available_vCPU
+</pre></div>
+</div>
+<p>Examples:</p>
+<ul class="simple">
+<li><p>2 vCPU container: <code class="docutils literal notranslate"><span class="pre">process_workers=1</span></code>, <code class="docutils literal notranslate"><span class="pre">APBASE_N_THREADS=2</span></code></p></li>
+<li><p>4 vCPU container: <code class="docutils literal notranslate"><span class="pre">process_workers=2</span></code>, <code class="docutils literal notranslate"><span class="pre">APBASE_N_THREADS=2</span></code></p></li>
+<li><p>latency-sensitive batch job: <code class="docutils literal notranslate"><span class="pre">process_workers=1</span></code>, <code class="docutils literal notranslate"><span class="pre">APBASE_N_THREADS</span></code> equal
+to the allocated vCPU count</p></li>
+</ul>
+<p>Avoid running many Python workers where each worker also uses many OpenMP
+threads; that oversubscribes CPU and usually makes kriging slower.</p>
+</section>
+<section id="data-contract">
+<h2>Data contract<a class="headerlink" href="#data-contract" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Use one-dimensional numeric arrays for <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p></li>
+<li><p>Prefer contiguous <code class="docutils literal notranslate"><span class="pre">float64</span></code> arrays at service boundaries to avoid hidden
+copies.</p></li>
+<li><p>Projected metric coordinates are used directly.</p></li>
+<li><p>Geographic lon/lat input is accepted by <code class="docutils literal notranslate"><span class="pre">Map</span></code>/<code class="docutils literal notranslate"><span class="pre">create_map</span></code>; pass
+<code class="docutils literal notranslate"><span class="pre">resolution</span></code> in meters.</p></li>
+<li><p>Pass <code class="docutils literal notranslate"><span class="pre">bounds</span></code> as a Shapely geometry, WKT, or WKB when the interpolation
+domain is known.</p></li>
+<li><p>Keep dense raster creation at the edge of the pipeline. Store compact
+<code class="docutils literal notranslate"><span class="pre">MapResult</span></code> points unless a downstream consumer specifically needs a padded
+<code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y,</span> <span class="pre">Z)</span></code> raster.</p></li>
+</ul>
+</section>
+<section id="recommended-deployment-flow">
+<h2>Recommended deployment flow<a class="headerlink" href="#recommended-deployment-flow" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Build a wheel in CI or in a Docker builder stage.</p></li>
+<li><p>Install the built wheel into a slim runtime image.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">APBASE_N_THREADS</span></code> and any ceiling overrides in the service
+environment.</p></li>
+<li><p>Run a small startup smoke test that imports <code class="docutils literal notranslate"><span class="pre">apbase</span></code>, builds a tiny map, and
+verifies native extensions load correctly.</p></li>
+<li><p>Keep API, queue, storage, and authentication code outside APbase; treat this
+package as the deterministic geospatial kernel.</p></li>
+</ol>
+<p>See <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> for install commands and <a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a> for the
+minimal map-generation call.</p>
 </section>
 </section>
 
@@ -354,23 +415,23 @@ service to avoid CPU oversubscription.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="quickstart.html">
+          <a class="next-page" href="user-guide/index.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Quickstart</div>
+                <div class="title">User Guide</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="index.html">
+          <a class="prev-page" href="quickstart.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Home</div>
+                <div class="title">Quickstart</div>
                 
               </div>
             </a>
@@ -404,12 +465,13 @@ service to avoid CPU oversubscription.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#install">Install</a></li>
-<li><a class="reference internal" href="#optional-extras">Optional extras</a></li>
-<li><a class="reference internal" href="#verify-the-install">Verify the install</a></li>
-<li><a class="reference internal" href="#production-runtime">Production runtime</a></li>
+<li><a class="reference internal" href="#">Production and cloud deployment</a><ul>
+<li><a class="reference internal" href="#where-apbase-fits">Where APbase fits</a></li>
+<li><a class="reference internal" href="#operational-properties">Operational properties</a></li>
+<li><a class="reference internal" href="#service-pattern">Service pattern</a></li>
+<li><a class="reference internal" href="#container-and-worker-sizing">Container and worker sizing</a></li>
+<li><a class="reference internal" href="#data-contract">Data contract</a></li>
+<li><a class="reference internal" href="#recommended-deployment-flow">Recommended deployment flow</a></li>
 </ul>
 </li>
 </ul>

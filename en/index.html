@@ -7,13 +7,13 @@
         <link rel="prefetch" href="_static/apbase.jpg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>APBase</title>
+        <title>APbase</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=eab67e96" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=426e8d2d" />
     
     
 
@@ -40,6 +40,8 @@
   }
 </style></head>
   <body>
+    
+  
     
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
@@ -165,7 +167,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="#"><div class="brand">APBase</div></a>
+      <a href="#"><div class="brand">APbase</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +191,7 @@
     <img class="sidebar-logo" src="_static/apbase.jpg" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">APBase</span>
+  <span class="sidebar-brand-text">APbase</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -200,6 +202,7 @@
   <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="production.html">Production and cloud deployment</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="user-guide/index.html">User Guide</a><input aria-label="Toggle navigation of User Guide" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/grid-and-mapping.html">Map and grid generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/filtering.html">Spatial filtering</a></li>
@@ -263,15 +266,22 @@
         </div>
         <article role="main" id="furo-main-content">
           <section class="tex2jax_ignore mathjax_ignore" id="apbase">
-<h1>APBase<a class="headerlink" href="#apbase" title="Link to this heading">¶</a></h1>
+<h1>APbase<a class="headerlink" href="#apbase" title="Link to this heading">¶</a></h1>
 <p><strong>Intelligent, high-performance map generation for precision agriculture.</strong></p>
-<p>APBase turns irregular field data (yield-monitor sweeps, soil samples,
+<p>APbase turns irregular field data (yield-monitor sweeps, soil samples,
 sensor grids) into maps without asking the user to choose the mathematical
 model by hand. The main entry point is <code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code>: give it <code class="docutils literal notranslate"><span class="pre">x</span></code>/<code class="docutils literal notranslate"><span class="pre">y</span></code>
 coordinates, values, and an output resolution; it filters the source data,
 handles geographic lon/lat input when needed, builds the grid, compares IDW
 against ordinary kriging, and uses the model with the lowest validation error
 for that dataset.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>APbase is a production-ready geospatial compute package. It is designed to be
+imported by cloud APIs, batch workers, MCP servers, AI agents, and containerized
+data pipelines that need deterministic map generation with native
+Fortran/OpenMP performance.</p>
+</div>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
 <label class="sd-tab-label" data-sync-group="tab" data-sync-id="python" for="sd-tab-item-0">
@@ -295,6 +305,7 @@ Python</label><div class="sd-tab-content docutils">
 <li class="toctree-l2"><a class="reference internal" href="installation.html#install">Install</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#optional-extras">Optional extras</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#verify-the-install">Verify the install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#production-runtime">Production runtime</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a><ul>
@@ -303,6 +314,15 @@ Python</label><div class="sd-tab-content docutils">
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#what-you-get-back">What you get back</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#the-functional-shortcut">The functional shortcut</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#advanced-manual-control">Advanced manual control</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="production.html">Production and cloud deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="production.html#where-apbase-fits">Where APbase fits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="production.html#operational-properties">Operational properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="production.html#service-pattern">Service pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="production.html#container-and-worker-sizing">Container and worker sizing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="production.html#data-contract">Data contract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="production.html#recommended-deployment-flow">Recommended deployment flow</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="user-guide/index.html">User Guide</a><ul>
@@ -328,7 +348,7 @@ Python</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="why-apbase">
-<h2>Why APBase<a class="headerlink" href="#why-apbase" title="Link to this heading">¶</a></h2>
+<h2>Why APbase<a class="headerlink" href="#why-apbase" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><strong>One primary map pipeline.</strong> <code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code> is the path most users need:
 filtering, boundary/grid generation, one shared variogram fit,
@@ -339,15 +359,19 @@ on the actual dataset – no manual comparison step.</p></li>
 <li><p><strong>Performance-oriented orchestration.</strong> The automatic pipeline reuses the
 fitted variogram for radius selection, cross-validation, and final kriging,
 avoiding redundant numerical work.</p></li>
+<li><p><strong>Production/cloud deployment fit.</strong> APbase has a small array-in/result-out
+API, process-wide runtime controls, compact outputs, and no dependency on a
+web framework, database, desktop GIS, or notebook runtime.</p></li>
 <li><p><strong>Built for irregular, noisy point data.</strong> The pipeline removes invalid
 rows, global outliers, and local spatial outliers before interpolation ever
 runs.</p></li>
 <li><p><strong>Sensible defaults.</strong> Search radius for <code class="docutils literal notranslate"><span class="pre">IDW</span></code>/<code class="docutils literal notranslate"><span class="pre">Kriging</span></code> falls back to a
 fitted variogram’s range when not given explicitly.</p></li>
 </ul>
-<p>See <a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a> for a full worked example. Use
-<a class="reference internal" href="user-guide/index.html"><span class="doc">User Guide</span></a> and <a class="reference internal" href="methodology/index.html"><span class="doc">Methodology</span></a> when you need advanced
-control or want to audit the mathematics behind the automatic choice.</p>
+<p>See <a class="reference internal" href="quickstart.html"><span class="doc">Quickstart</span></a> for a full worked example and <a class="reference internal" href="production.html"><span class="doc">Production and cloud deployment</span></a> for
+deployment guidance. Use <a class="reference internal" href="user-guide/index.html"><span class="doc">User Guide</span></a> and
+<a class="reference internal" href="methodology/index.html"><span class="doc">Methodology</span></a> when you need advanced control or want to audit the
+mathematics behind the automatic choice.</p>
 </section>
 </section>
 
@@ -370,7 +394,7 @@ control or want to audit the mathematics behind the automatic choice.</p>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; APBase
+                Copyright &#169; APbase
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -396,9 +420,9 @@ control or want to audit the mathematics behind the automatic choice.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">APBase</a><ul>
+<li><a class="reference internal" href="#">APbase</a><ul>
 <li><a class="reference internal" href="#contents">Contents</a></li>
-<li><a class="reference internal" href="#why-apbase">Why APBase</a></li>
+<li><a class="reference internal" href="#why-apbase">Why APbase</a></li>
 </ul>
 </li>
 </ul>
@@ -410,7 +434,9 @@ control or want to audit the mathematics behind the automatic choice.</p>
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+</div>
+  
+<script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>

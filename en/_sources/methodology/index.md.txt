@@ -1,6 +1,6 @@
 # Methodology
 
-APBase's interpolation methods are standard geostatistical techniques behind
+APbase's interpolation methods are standard geostatistical techniques behind
 its intelligent mapping pipeline for precision agriculture. You do not need
 this section to generate maps with `apbase.Map`; use it when you want to
 audit the mathematics, tune an advanced workflow, or understand why one model

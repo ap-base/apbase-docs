@@ -1,6 +1,10 @@
 # Installation
 
-Install the Python core of APBase's high-performance mapping pipeline.
+Install the Python core of APbase's high-performance mapping pipeline.
+
+For production deployments, install APbase as a normal package inside the
+runtime used by your API service, worker, MCP server, agent backend, or batch
+container. See {doc}`production` for cloud/container sizing guidance.
 
 ## Requirements
 
@@ -65,3 +69,26 @@ print(apbase.Map, apbase.create_map)
 :::
 
 ::::
+
+## Production runtime
+
+Use a built wheel in production images whenever possible. A typical container
+build compiles native Fortran/OpenMP extensions in a builder stage, repairs or
+packages the wheel, and installs that wheel into a slim runtime stage.
+
+Configure CPU parallelism at process startup:
+
+```bash
+export APBASE_N_THREADS=2
+```
+
+or in Python before handling work:
+
+```python
+import apbase
+
+apbase.config["n_threads"] = 2
+```
+
+Keep `workers * APBASE_N_THREADS` at or below the vCPU allocated to the
+service to avoid CPU oversubscription.

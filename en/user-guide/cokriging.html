@@ -7,13 +7,13 @@
         <link rel="prefetch" href="../_static/apbase.jpg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Cokriging - APBase</title>
+        <title>Cokriging - APbase</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=eab67e96" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=426e8d2d" />
     
     
 
@@ -40,6 +40,8 @@
   }
 </style></head>
   <body>
+    
+  
     
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
@@ -165,7 +167,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">APBase</div></a>
+      <a href="../index.html"><div class="brand">APbase</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +191,7 @@
     <img class="sidebar-logo" src="../_static/apbase.jpg" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">APBase</span>
+  <span class="sidebar-brand-text">APbase</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -200,6 +202,7 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../production.html">Production and cloud deployment</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">User Guide</a><input aria-label="Toggle navigation of User Guide" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="grid-and-mapping.html">Map and grid generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filtering.html">Spatial filtering</a></li>
@@ -381,7 +384,7 @@ Python</label><div class="sd-tab-content docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">method</span></code> : {“collocated”, “icm”, “lmc”}, default <code class="docutils literal notranslate"><span class="pre">&quot;collocated&quot;</span></code></dt><dd><p>Co-kriging model. <code class="docutils literal notranslate"><span class="pre">&quot;icm&quot;</span></code> is a reasonable default when unsure: no Markov
 screening assumption and no per-secondary shape choice to tune.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">radius</span></code> : float, optional</dt><dd><p>Local search radius. If omitted, APBase derives it from the primary
+<dt><code class="docutils literal notranslate"><span class="pre">radius</span></code> : float, optional</dt><dd><p>Local search radius. If omitted, APbase derives it from the primary
 variogram.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">max_neighbors</span></code>, <code class="docutils literal notranslate"><span class="pre">min_neighbors</span></code> : int</dt><dd><p>Neighbor limits. For <code class="docutils literal notranslate"><span class="pre">&quot;icm&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;lmc&quot;</span></code>, these bound every variable’s own
@@ -473,7 +476,7 @@ cokriging method is best among themselves.</p>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; APBase
+                Copyright &#169; APbase
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -524,7 +527,9 @@ cokriging method is best among themselves.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+</div>
+  
+<script src="../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -7,13 +7,13 @@
         <link rel="prefetch" href="../_static/apbase.jpg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Geração de mapas e grades - APBase</title>
+        <title>Geração de mapas e grades - APbase</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=eab67e96" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=426e8d2d" />
     
     
 
@@ -40,6 +40,8 @@
   }
 </style></head>
   <body>
+    
+  
     
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
@@ -148,12 +150,12 @@
   </symbol>
 </svg>
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Alternar a barra de navegação">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Alternar o sumário da página">
 <label class="overlay sidebar-overlay" for="__navigation"></label>
 <label class="overlay toc-overlay" for="__toc"></label>
 
-<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+<a class="skip-to-content muted-link" href="#furo-main-content">Ir para o conteúdo</a>
 
 
 
@@ -165,7 +167,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">APBase</div></a>
+      <a href="../index.html"><div class="brand">APbase</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +191,7 @@
     <img class="sidebar-logo" src="../_static/apbase.jpg" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">APBase</span>
+  <span class="sidebar-brand-text">APbase</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Buscar" name="q" aria-label="Buscar">
@@ -200,6 +202,7 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Instalação</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Início rápido</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../production.html">Production and cloud deployment</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Guia do usuário</a><input aria-label="Alternar navegação de Guia do usuário" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Geração de mapas e grades</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filtering.html">Filtragem espacial</a></li>
@@ -266,7 +269,7 @@
 <h1>Geração de mapas e grades<a class="headerlink" href="#map-and-grid-generation" title="Link para este cabeçalho">¶</a></h1>
 <section id="map-primary-automatic-pipeline">
 <h2>Map: primary automatic pipeline<a class="headerlink" href="#map-primary-automatic-pipeline" title="Link para este cabeçalho">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code> is the main APBase entry point for creating maps from irregular
+<p><code class="docutils literal notranslate"><span class="pre">apbase.Map</span></code> is the main APbase entry point for creating maps from irregular
 point data. It runs the full intelligent, high-performance pipeline in one
 call:</p>
 <ol class="arabic simple">
@@ -295,7 +298,7 @@ input. Use meters for lon/lat input.</p>
 <dt><code class="docutils literal notranslate"><span class="pre">filter</span></code> : bool, default <code class="docutils literal notranslate"><span class="pre">True</span></code></dt><dd><p>Run the spatial filter before cross-validation and interpolation.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">bounds</span></code> : geometry, str, bytes, optional</dt><dd><p>Optional interpolation domain. Accepts a Shapely geometry, WKT, or WKB in
-the same coordinate system as the original input. If omitted, APBase infers
+the same coordinate system as the original input. If omitted, APbase infers
 a concave hull from the filtered source points.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">geographic_mode</span></code> : {“local”, “utm”}, optional</dt><dd><p>Projection strategy for detected lon/lat input. Leave as <code class="docutils literal notranslate"><span class="pre">None</span></code> for the
@@ -456,7 +459,7 @@ pipeline. It is not required for normal map creation.</p>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; APBase
+                Copyright &#169; APbase
             </div>
             Feito com <a href="https://www.sphinx-doc.org/">Sphinx</a> e <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a> com o tema
             
@@ -499,7 +502,9 @@ pipeline. It is not required for normal map creation.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=8946c2f5"></script>
+</div>
+  
+<script src="../_static/documentation_options.js?v=8946c2f5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
