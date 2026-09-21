@@ -1,0 +1,85 @@
+/* APbase docs theme polish. Keep links clickable without the default blue UI. */
+:root {
+  --color-brand-primary: #20242a;
+  --color-brand-content: #20242a;
+  --color-link: #20242a;
+  --color-link--visited: #20242a;
+  --color-link--hover: #0f1115;
+  --color-sidebar-link-text: #30343a;
+  --color-sidebar-link-text--top-level: #20242a;
+  --color-sidebar-search-text: #20242a;
+  --color-toc-item-text--active: #20242a;
+  --sd-color-tabs-label-active: #20242a;
+  --sd-color-tabs-underline-active: #20242a;
+}
+
+body[data-theme="dark"] {
+  --color-brand-primary: #f2f4f7;
+  --color-brand-content: #f2f4f7;
+  --color-link: #f2f4f7;
+  --color-link--visited: #f2f4f7;
+  --color-link--hover: #ffffff;
+  --color-sidebar-link-text: #d9dde3;
+  --color-sidebar-link-text--top-level: #f2f4f7;
+  --color-sidebar-search-text: #f2f4f7;
+  --color-toc-item-text--active: #f2f4f7;
+  --sd-color-tabs-label-active: #f2f4f7;
+  --sd-color-tabs-underline-active: #f2f4f7;
+}
+
+.sidebar-brand {
+  padding-top: 1.25rem;
+  align-items: center;
+  text-align: center;
+}
+
+.sidebar-logo {
+  display: block;
+  max-height: 112px;
+  width: auto;
+  margin: 0 auto 0.65rem;
+  border-radius: 6px;
+}
+
+.sidebar-brand-text {
+  color: var(--color-sidebar-link-text--top-level);
+  font-weight: 650;
+}
+
+a,
+a:visited,
+.sidebar-tree .reference,
+.sidebar-tree .icon,
+.sidebar-tree .toctree-l1 > .reference,
+.sidebar-tree .current > .reference,
+.sidebar-tree .current-page > .reference,
+.toc-tree a,
+.toc-tree a.reference,
+.toc-tree li.scroll-current > .reference,
+.content a,
+.article-container a {
+  color: var(--color-link);
+  text-decoration-color: color-mix(in srgb, var(--color-link) 35%, transparent);
+}
+
+a:hover,
+.sidebar-tree .reference:hover,
+.toc-tree a:hover,
+.content a:hover,
+.article-container a:hover {
+  color: var(--color-link--hover);
+  text-decoration-color: currentColor;
+}
+
+.toc-tree li.current > a,
+.toc-tree li.current-page > a,
+.toc-tree li.scroll-current > .reference {
+  color: var(--color-link--hover);
+  font-weight: 650;
+}
+
+.sd-tab-set > input:checked + label,
+.sd-tab-set > input:checked + label:hover {
+  color: var(--color-link--hover) !important;
+  border-color: var(--color-link--hover) !important;
+}

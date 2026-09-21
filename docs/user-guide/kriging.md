@@ -1,0 +1,63 @@
+# Kriging
+
+`Kriging` fits or accepts a variogram model and uses local ordinary kriging to
+estimate target values. Most users can let `apbase.Map` decide whether it is
+the better option: the pipeline compares kriging with IDW and keeps it only
+when it has the lower validation error.
+
+::::{tab-set}
+
+:::{tab-item} Python
+:sync: python
+
+```python
+from apbase.kriging import Kriging
+
+kriging = Kriging(max_neighbors=40, min_neighbors=3).fit(x, y, z)
+z_targets = kriging.interpolate(targets)  # targets: (n, 2) array
+```
+
+:::
+
+::::
+
+## Parameters
+
+`x`, `y` : array_like
+: Source coordinates passed to `fit`. Use metric/projected coordinates when
+  `radius` is metric.
+
+`z` : array_like
+: Source values. Must have the same length as `x` and `y`.
+
+`targets` : array_like or Grid
+: Target coordinates passed to `interpolate`. Use an `(n_targets, 2)` array or
+  a fitted `Grid`.
+
+`radius` : float, optional
+: Local search radius. If omitted, uses `range / 3` from the fitted
+  variogram.
+
+`max_neighbors` : int, default `40`
+: Maximum source points used per target.
+
+`min_neighbors` : int, default `3`
+: Minimum source points required to produce a finite estimate.
+
+`model_values` : array_like, optional
+: Precomputed variogram model. If provided, `fit` uses it instead of fitting
+  a new variogram. `Map`, `create_map`, and cross-validation use this to
+  avoid redundant fitting.
+
+## What "local" and "ordinary" mean here
+
+*Local* means that each target is estimated from nearby source points within
+`radius`, capped at `max_neighbors`, rather than from the entire dataset. This
+keeps the linear system small and the method scalable. *Ordinary* means that
+the process mean is treated as unknown and constant within each local
+neighborhood. Simple kriging makes the different assumption that the mean is
+known.
+
+See {doc}`../methodology/kriging` for the full derivation: the variogram
+models, the linear system solved per target, and why it produces the
+best linear unbiased estimate.

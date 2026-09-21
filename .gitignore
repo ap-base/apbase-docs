@@ -1,3 +1,6 @@
 .venv/
-site/
 __pycache__/
+_build/
+docs/_build/
+site/
+en/

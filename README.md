@@ -1,7 +1,9 @@
 # APbase
 
-APbase is a production-ready geospatial compute package for precision agriculture. It turns irregular field data into validated maps through automated filtering, variogram fitting, cross-validation, and model selection.
+APbase is a high-performance geospatial mapping pipeline for irregular field
+data. It filters source points, builds a target grid, fits the variogram,
+compares interpolation methods, and selects the best result through validation.
+The output is a ready-to-use map, without requiring each mathematical step to
+be configured by hand.
 
-Built on native Fortran/OpenMP kernels, APbase is designed for cloud APIs, batch workers, MCP servers, AI agents, and containerized data pipelines that need deterministic map generation with predictable performance.
-
-**[APbase docs](https://ap-base.github.io/apbase-docs/)**: installation guide, quickstart examples, user guide, methodology, and API reference.
+Python package: [apbase-python](https://github.com/ap-base/apbase-python)
