@@ -1,45 +1,42 @@
 # Installation
 
 APbase's mapping pipeline is distributed with compiled numerical extensions.
-Install the integration for the language and runtime you use. The current
-distribution provides the Python package described below.
+Install the integration for the language and runtime you use.
 
 For production deployments, install APbase in the runtime used by your API
 service, worker, MCP server, agent backend, or batch container. See
 {doc}`production` for cloud and worker sizing guidance.
 
-## Python package
-
-### Requirements
-
-- Python 3.12+
-- `numpy`, `pyproj`, `shapely` (installed automatically as dependencies)
-
-### Install
+## Requirements
 
 ::::{tab-set}
 
 :::{tab-item} Python
+:sync: python
+
+- Python 3.12+
+- `numpy`, `pyproj`, `shapely` (installed automatically as dependencies)
+
+:::
+
+::::
+
+## Install
+
+:::::{tab-set}
+
+::::{tab-item} Python
 :sync: python
 
 ```bash
 pip install apbase
 ```
 
-:::
-
-::::
-
 :::{note}
 If `apbase` is available from your package index, the command above is
 enough. Until it is published to a public index, install from a local
 distribution or the project repository.
 :::
-
-::::{tab-set}
-
-:::{tab-item} Python
-:sync: python
 
 ```bash
 pip install /path/to/apbase-python
@@ -49,9 +46,9 @@ pip install /path/to/apbase-python
 pip install git+https://github.com/ap-base/apbase-python.git
 ```
 
-:::
-
 ::::
+
+:::::
 
 ## Optional extras
 
@@ -92,14 +89,14 @@ print(apbase.Map, apbase.create_map)
 
 ## Using it in production
 
-The package already includes its compiled native extensions. Install it in the
-production runtime with the package manager; the application image does not
-need a Fortran compiler or a separate build stage.
-
 ::::{tab-set}
 
 :::{tab-item} Python
 :sync: python
+
+The package already includes its compiled native extensions. Install it in the
+production runtime with the package manager; the application image does not
+need a Fortran compiler or a separate build stage.
 
 Configure CPU parallelism once when the process starts:
 
@@ -115,9 +112,9 @@ import apbase
 apbase.config["n_threads"] = 2
 ```
 
+Keep `workers * APBASE_N_THREADS` at or below the vCPU allocated to the
+service to avoid CPU oversubscription.
+
 :::
 
 ::::
-
-Keep `workers * APBASE_N_THREADS` at or below the vCPU allocated to the
-service to avoid CPU oversubscription.
