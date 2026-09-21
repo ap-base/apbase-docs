@@ -49,6 +49,16 @@ body[data-theme] {
   font-weight: 650;
 }
 
+.sidebar-package-version {
+  padding: 1rem;
+  text-align: center;
+}
+
+.sidebar-package-version img {
+  max-width: 100%;
+  vertical-align: middle;
+}
+
 a,
 a:visited,
 .sidebar-tree .reference,
