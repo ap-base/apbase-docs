@@ -1,30 +1,33 @@
 /* APbase docs theme polish. Keep links clickable without the default blue UI. */
-:root {
-  --color-brand-primary: #20242a;
-  --color-brand-content: #20242a;
-  --color-link: #20242a;
-  --color-link--visited: #20242a;
-  --color-link--hover: #0f1115;
-  --color-sidebar-link-text: #30343a;
-  --color-sidebar-link-text--top-level: #20242a;
-  --color-sidebar-search-text: #20242a;
-  --color-toc-item-text--active: #20242a;
-  --sd-color-tabs-label-active: #20242a;
-  --sd-color-tabs-underline-active: #20242a;
+/* Declare on body so Furo's body variables cannot override inherited values. */
+body,
+body[data-theme] {
+  --apbase-link-color: #000000;
+  --color-brand-primary: var(--apbase-link-color);
+  --color-brand-content: var(--apbase-link-color);
+  --color-brand-visited: var(--apbase-link-color);
+  --color-link: var(--apbase-link-color);
+  --color-link--visited: var(--apbase-link-color);
+  --color-link--hover: var(--apbase-link-color);
+  --color-link--visited--hover: var(--apbase-link-color);
+  --color-sidebar-link-text: var(--apbase-link-color);
+  --color-sidebar-link-text--top-level: var(--apbase-link-color);
+  --color-sidebar-search-text: var(--apbase-link-color);
+  --color-toc-item-text--active: var(--apbase-link-color);
+  --sd-color-tabs-label-active: var(--apbase-link-color);
+  --sd-color-tabs-underline-active: var(--apbase-link-color);
 }
 
-body[data-theme="dark"] {
-  --color-brand-primary: #f2f4f7;
-  --color-brand-content: #f2f4f7;
-  --color-link: #f2f4f7;
-  --color-link--visited: #f2f4f7;
-  --color-link--hover: #ffffff;
-  --color-sidebar-link-text: #d9dde3;
-  --color-sidebar-link-text--top-level: #f2f4f7;
-  --color-sidebar-search-text: #f2f4f7;
-  --color-toc-item-text--active: #f2f4f7;
-  --sd-color-tabs-label-active: #f2f4f7;
-  --sd-color-tabs-underline-active: #f2f4f7;
+@media not print {
+  body[data-theme="dark"] {
+    --apbase-link-color: #ffffff;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) {
+      --apbase-link-color: #ffffff;
+    }
+  }
 }
 
 .sidebar-brand {
