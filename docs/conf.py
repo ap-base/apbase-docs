@@ -12,6 +12,7 @@ extensions = [
     "sphinxcontrib.bibtex",
     "sphinx_copybutton",
     "sphinx_design",
+    "sphinx_sitemap",
 ]
 
 copybutton_prompt_text = r"\$ "
@@ -46,6 +47,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "furo"
 html_title = "APbase"
+html_baseurl = "https://apbase.io/"
+sitemap_url_scheme = "{link}"
+sitemap_locales = [None]
 html_logo = "img/apbase.jpg"
 templates_path = ["_templates"]
 html_sidebars = {
@@ -61,4 +65,5 @@ html_sidebars = {
     ],
 }
 html_static_path = ["_static"]
+html_extra_path = ["robots.txt"]
 html_css_files = ["custom.css"]

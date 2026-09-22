@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://apbase.io/sitemap.xml
