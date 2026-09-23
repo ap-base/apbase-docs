@@ -1,0 +1,7 @@
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  {%- set canonical_path = "" if pagename == "index" else pagename + ".html" -%}
+  <link rel="canonical" href="{{ html_baseurl.rstrip("/") }}/{{ canonical_path }}" />
+{% endblock %}
