@@ -6,7 +6,6 @@ BUILDDIR = _build
 
 html:
 	$(SPHINXBUILD) -b html -W --keep-going $(SOURCEDIR) $(BUILDDIR)/html
-	cp CNAME .nojekyll $(BUILDDIR)/html/
 
 clean:
 	rm -rf $(BUILDDIR) $(SOURCEDIR)/_build
