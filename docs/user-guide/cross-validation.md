@@ -1,11 +1,12 @@
 # Cross-validation
 
 `apbase.cross_validate.cross_validate` compares IDW and ordinary kriging on
-the same source data. It uses leave-one-out cross-validation while sharing the
-variogram, search radius, and spatial index between both methods.
+the same source data. It uses leave-one-out cross-validation with one shared
+setup: a single fitted variogram sets the common search radius and the kriging
+model, and both methods use the same spatial index.
 
 This is the decision step behind `apbase.Map`: it is how APbase chooses the
-method with the lowest validation error for the current dataset. Call it
+method with the lower leave-one-out RMSE for the current dataset. Call it
 directly when you want to inspect the comparison or run it with your own
 limits.
 
@@ -23,12 +24,25 @@ result.idw.rmse, result.kriging.rmse
 
 :::
 
+:::{tab-item} Rust
+:sync: rust
+
+```rust
+use apbase::cross_validate::{CrossValidateOptions, cross_validate};
+
+let result = cross_validate(&x, &y, &z, CrossValidateOptions { max_points: 500, ..Default::default() })?;
+(result.idw.rmse, result.kriging.rmse);
+```
+
+:::
+
 ::::
 
 ## Parameters
 
 `x`, `y` : array_like
-: Source coordinates.
+: Source coordinates, in a projected coordinate system (no longitude/latitude
+  conversion).
 
 `z` : array_like
 : Source values. Must have the same length as `x` and `y`.
@@ -42,7 +56,7 @@ result.idw.rmse, result.kriging.rmse
 
 `radius` : float, optional
 : Shared local search radius for IDW and kriging. If omitted, APbase derives
-  it from the fitted variogram.
+  it from the fitted variogram (see {doc}`../methodology/variogram-fitting`).
 
 `power` : float, default `2.0`
 : IDW distance exponent.
@@ -59,10 +73,9 @@ result.idw.rmse, result.kriging.rmse
 per-sample predictions and actuals used to compute them. These values help you
 see whether one method's error is being driven by a few outlier points.
 
-`apbase.Map` uses this function internally to pick between IDW and kriging
-automatically. `apbase.create_map` is the functional shortcut for the same
-pipeline. See {doc}`../methodology/cross-validation` for the leave-one-out
-procedure itself.
+`apbase.Map` runs this function, then `select_best_model`, to pick between IDW
+and kriging automatically. See {doc}`../methodology/cross-validation` for the
+leave-one-out procedure and the selection rule.
 
 For cokriging (collocated/ICM/LMC), see `cross_validate_cokriging` in
 {doc}`cokriging`, which cross-validates all three methods together.

@@ -2,8 +2,9 @@
 
 `apbase.cross_validate` is the model-selection step behind `apbase.Map`. It
 compares IDW and ordinary kriging on the same source data using
-**leave-one-out cross-validation** (LOO-CV). The pipeline then uses the method
-with the lowest validation error for that dataset.
+**leave-one-out cross-validation** (LOO-CV). `apbase.Map` then interpolates
+with whichever method scored the lower RMSE, as decided by
+`select_best_model` (see below); ties go to IDW.
 
 ## Leave-one-out procedure
 
@@ -16,9 +17,9 @@ For each evaluated source point $x_i$:
 3. Compare $\hat{z}_i$ to the true, held-out $z_i$.
 
 Repeating this for every evaluated point gives prediction errors
-$e_i = z_i - \hat{z}_i$. These errors show how well the method may generalize
-to a new observation at each location because each point is predicted without
-using its own value.
+$e_i = z_i - \hat{z}_i$. Because each point is predicted without its own value,
+these errors estimate how well the method would predict a new, unseen
+observation.
 
 ## Error metrics
 
@@ -42,21 +43,18 @@ always predicting the mean.
 
 ## Shared variogram, shared neighborhood
 
-Both methods use the same fitted variogram, search radius, and spatial index.
-Differences in MAE, RMSE, and $R^2$ therefore reflect the interpolation method
-rather than a difference in configuration.
+Both methods use the same search radius and spatial index. The radius comes
+from one fitted variogram, which is also the kriging model. Differences in
+MAE, RMSE, and $R^2$ therefore reflect the interpolation method rather than a
+difference in configuration.
 
 ## Bounded runtime
 
-Evaluating every source point requires $O(n)$ leave-one-out fits, which can be
-expensive for large datasets. `max_points` caps the number of points tested.
-If there are more finite points than the limit, APbase draws a random
-subsample of size `max_points`, using `seed` when provided. This keeps runtime
-bounded as the dataset grows.
-
-`apbase.Map` runs this comparison automatically and interpolates with
-whichever method scored the lower RMSE. `apbase.create_map` is the
-functional shortcut for the same pipeline.
+Evaluating every source point requires $n$ leave-one-out fits, one per point,
+which can be expensive for large datasets. `max_points` caps the number of
+points tested. If there are more finite points than the limit, APbase draws a
+random subsample of size `max_points`, using `seed` when provided. This keeps
+runtime bounded as the dataset grows.
 
 ## Cokriging: three methods in one pass
 
@@ -66,18 +64,25 @@ functional shortcut for the same pipeline.
 coregionalization model is fitted once from the full dataset and kept fixed
 throughout, matching how the model is used in practice. All three methods
 share one primary spatial index and one radius, so their results remain
-directly comparable.
+directly comparable. A method whose model cannot be fitted is left out instead
+of failing the comparison: collocated cokriging when a secondary has too few
+samples at the primary locations to estimate its correlation, and ICM or LMC
+when the fit is rejected as non-positive-semidefinite or invalid. An error is
+raised only when no method can be fitted.
 
-## Selecting the best of more than two methods
+## Selecting the best method
 
-`select_best_model` compares scores on the samples where *every* candidate
-method produced a finite prediction. With more than two methods, it first
+`select_best_model` is the step `apbase.Map` uses to pick its method. It
+compares scores (RMSE by default) on the samples where *every* candidate
+method produced a finite prediction, and the lower score wins; a tie between
+IDW and kriging goes to IDW. Given a plain `cross_validate(...)` result, it
+compares IDW against kriging directly and returns the two-method result type.
+With more than two methods, such as `cv.by_method` from cokriging, it first
 identifies the winner and runner-up from the point estimates, then uses a
-paired bootstrap for that pair. With a plain `cross_validate(...)` result,
-which compares IDW and kriging, it keeps the two-method behavior.
+paired bootstrap for that pair.
 
-A paired bootstrap over the common-valid sample estimates whether the margin
-between the winner and runner-up is likely genuine rather than an artifact of
-which points were held out. `n_bootstrap` resamples the common-valid indices,
-recomputes the score difference for each resample, and sets
-`significant=True` when the resulting confidence interval excludes zero.
+The paired bootstrap estimates whether the margin between the winner and
+runner-up is likely genuine rather than an artifact of which points were held
+out. `n_bootstrap` resamples those common samples, recomputes the score
+difference for each resample, and sets `significant=True` when the resulting
+confidence interval excludes zero.

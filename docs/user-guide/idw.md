@@ -1,9 +1,9 @@
-# IDW
+# Inverse distance weighting (IDW)
 
 `IDW` estimates each target value as a distance-weighted average of nearby
 source points. Most users can let `apbase.Map` handle it: the automatic
 pipeline compares IDW with ordinary kriging and keeps IDW when it has the
-lower validation error for the current dataset.
+lower leave-one-out RMSE for the current dataset.
 
 ::::{tab-set}
 
@@ -19,23 +19,39 @@ z_targets = idw.interpolate(targets)  # targets: (n, 2) array
 
 :::
 
+:::{tab-item} Rust
+:sync: rust
+
+```rust
+use apbase::idw::{IDW, IDWOptions};
+
+let mut idw = IDW::new(IDWOptions { power: 2.0, max_neighbors: 40, min_neighbors: 3, ..Default::default() })?;
+idw.fit(&x, &y, &z)?;
+let z_targets = idw.interpolate(&targets)?; // targets: (n, 2) array or a fitted Grid
+```
+
+:::
+
 ::::
 
 ## Parameters
 
 `x`, `y` : array_like
-: Source coordinates passed to `fit`. Use metric/projected coordinates when
-  `radius` is metric.
+: Source coordinates passed to `fit`. `IDW` does not convert
+  longitude/latitude: pass projected coordinates, in the same unit as
+  `radius`.
 
 `z` : array_like
 : Source values. Must have the same length as `x` and `y`.
 
 `targets` : array_like or Grid
-: Target coordinates passed to `interpolate`. Use an `(n_targets, 2)` array or
-  a fitted `Grid`.
+: Target coordinates passed to `interpolate`: an `(n_targets, 2)` array, a
+  fitted `Grid`, or point geometries (a list of Shapely points, or a
+  `GeoSeries`/`GeoDataFrame`).
 
 `radius` : float, optional
-: Local search radius. If omitted, a variogram is fit and `range / 3` is used.
+: Local search radius. If omitted, it is derived from a fitted variogram (see
+  {doc}`../methodology/variogram-fitting`).
 
 `power` : float, default `2.0`
 : Distance exponent. Higher values give more weight to nearby points.
@@ -44,8 +60,8 @@ z_targets = idw.interpolate(targets)  # targets: (n, 2) array
 : Maximum source points used per target.
 
 `min_neighbors` : int, default `3`
-: Minimum source points required to produce a finite estimate. Targets with
-  fewer neighbors return `NaN`.
+: Minimum source points within `radius`. When fewer are found, the
+  `max_neighbors` nearest points are used regardless of distance.
 
 ## When IDW wins over kriging
 

@@ -22,4 +22,3 @@ usage examples from the source docstring.
 .. autoclass:: apbase.mapping.MapResult
    :members:
    :show-inheritance:
-   :no-index:

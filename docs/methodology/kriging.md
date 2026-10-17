@@ -21,9 +21,10 @@ The weights $\lambda_i$ are chosen so that the estimator is:
   process mean is unknown but treated as constant within the local
   neighborhood. This constraint accounts for that unknown mean.
 - **Minimum variance**: among all weights that satisfy the unbiasedness
-  constraint, the chosen weights minimize
-  $\operatorname{Var}[\hat{z}(x_0) - z(x_0)]$. The semivariance $\gamma(h)$
-  describes how similar values tend to be at separation $h$.
+  constraint, the chosen weights minimize the estimation variance
+  $\operatorname{Var}[\hat{z}(x_0) - z(x_0)]$. This variance is written in
+  terms of the semivariance $\gamma(h)$, which describes how dissimilar values
+  tend to be at separation $h$.
 
 ## The kriging system
 
@@ -46,33 +47,31 @@ $$
 
 where $d_{ij}$ is the distance between source points $i$ and $j$, and
 $d_{i0}$ is the distance from source point $i$ to the target $x_0$. The
-$(n+1) \times (n+1)$ matrix on the left is symmetric except for the
-constraint row/column; the bottom row and right column (all ones, with a
-zero corner) are exactly what enforces $\sum \lambda_i = 1$.
+$(n+1) \times (n+1)$ matrix on the left is symmetric. Its bottom row and
+right column (all ones, with a zero corner) enforce $\sum \lambda_i = 1$.
 
 Solving this system gives both the kriging weights $\lambda_i$ and the
-**kriging variance** -- an estimate of the uncertainty at $x_0$:
+**kriging variance**, an estimate of the uncertainty at $x_0$:
 
 $$
 \sigma_K^2(x_0) = \sum_{i=1}^{n} \lambda_i \, \gamma(d_{i0}) + \mu
 $$
 
 Unlike IDW's fixed distance-decay weights, kriging accounts for redundancy
-between clustered source points. Two nearby points that are also close to each
-other contribute less independent information than two points spread farther
-apart at the same average distance from the target.
+between source points. Points clustered together carry partly redundant
+information, so kriging gives them less combined weight than the same number
+of points spread around the target at similar distances.
 
 ## Local kriging
 
 Solving the full system over every source point would become expensive as the
 dataset grows. `Kriging` instead builds and solves the system for each target
-using only the nearest `max_neighbors` source points within `radius`, just as
-IDW does. `min_neighbors` sets a floor below which a target returns `NaN`
-rather than a poorly constrained estimate.
+using only the nearest `max_neighbors` source points within `radius`, with the
+same `min_neighbors` fallback as {doc}`IDW <idw>`.
 
 ## Supplying a variogram directly
 
 `model_values` lets you pass a precomputed variogram model instead of fitting
 one from `x`/`y`/`z`. This is useful when several interpolation runs should
 share exactly one model, as in `apbase.cross_validate`, which fits one
-variogram and reuses it for both IDW and kriging.
+variogram and uses it for the shared search radius and the kriging model.
