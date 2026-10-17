@@ -1,12 +1,8 @@
 # Production and cloud deployment
 
-APbase provides an intelligent mapping pipeline that turns field data into
-validated maps. Its automatic decisions cover input filtering, target-grid
-creation, variogram fitting, method comparison, and model selection through
-compiled numerical kernels.
-The same pipeline can run in a local application, an API, a background worker,
-a batch job, or a cloud service. The current package interface is Python, but
-these concepts also apply to future language integrations.
+The same mapping pipeline that runs in a notebook can run in an API, a
+background worker, a batch job, or a cloud service. This page covers what
+changes when you deploy it. The guidance applies to both Python and Rust.
 
 ## Where APbase fits
 
@@ -16,7 +12,7 @@ Use APbase wherever a service needs to turn field points into maps:
 - queue or batch workers that process yield, soil, or sensor files;
 - container jobs on Kubernetes, Cloud Run, ECS/Fargate, Azure Container Apps,
   or similar managed runtimes;
-- MCP servers and agent tools that need deterministic map generation;
+- MCP servers and agent tools that need reproducible map generation;
 - scheduled data pipelines that write map points or rasters to object storage,
   Parquet, databases, or GIS services.
 
@@ -26,26 +22,24 @@ then consume the generated map in the format your application needs.
 
 ## What matters in production
 
-The main points to keep in mind are:
-
-- Start with the high-level mapping interface. Use lower-level components only
-  when you need diagnostics or an advanced workflow. In Python, the high-level
-  entry points are `apbase.Map` and `apbase.create_map`.
+- Start with the high-level entry points: `apbase.Map` and `apbase.create_map`
+  in Python, `apbase::Map` and `apbase::create_map` in Rust. Lower-level
+  components are for diagnostics and advanced workflows.
 - Filtering, variogram fitting, IDW, kriging, and cross-validation run through
   compiled numerical kernels, so the expensive work does not happen in
   application-level point loops.
-- The distributed package includes the native extensions. Install the package
-  for your target language; the application container does not need a Fortran
-  compiler.
-- Set limits for cross-validation points, neighbors, grid size, and variogram
-  pairs when you need explicit CPU and memory budgets. The Python interface
-  exposes these as `max_cv_points`, `max_neighbors`,
-  `apbase.config["grid_max_points_ceiling"]`, and variogram pair limits.
-- Results contain only target points inside the interpolation boundary by
-  default. Create a dense raster only when the downstream application needs
-  one.
-- Configure OpenMP threads once for each worker process. In Python, use
-  `apbase.config["n_threads"]` or `APBASE_N_THREADS`.
+- Set limits when you need explicit CPU and memory budgets. `max_cv_points`
+  and `max_neighbors` are arguments of `Map` and `create_map` (`MapOptions`
+  fields in Rust). Grid size and variogram pairs are process-wide settings:
+  `grid_max_points_ceiling`, `variogram_max_pairs` (pairs sampled by the
+  variogram the pipeline fits), and `variogram_max_pairs_ceiling`, set with
+  `apbase.config[key]` in Python or `apbase::config.set(key, n)?` in Rust.
+- Results are compact: only grid points inside the boundary. Call
+  `to_raster()` only when a client needs a full grid.
+- Configure OpenMP threads once per worker process with
+  `apbase.config["n_threads"]` in Python or
+  `apbase::config.set("n_threads", n)?` in Rust. When `n_threads` is not set,
+  both libraries read the `APBASE_N_THREADS` environment variable.
 
 ## Using APbase in a service
 
@@ -57,8 +51,7 @@ configuration out of the request handler.
 :::{tab-item} Python
 :sync: python
 
-The Python interface can be configured at service startup and called once per
-request or job:
+In Python:
 
 ```python
 import os
@@ -91,16 +84,83 @@ def build_map_response(x, y, z, *, resolution, bounds=None):
         "x": result.x,
         "y": result.y,
         "z": result.z,
-        "rmse": selected_cv.rmse,
-        "n_source_points": result.n_source_points,
+        "rmse": selected_cv.rmse,  # LOO-CV RMSE of the selected method
+        "n_source_points": result.n_source_points,  # points kept after filtering
     }
+```
+
+:::
+
+:::{tab-item} Rust
+:sync: rust
+
+In Rust:
+
+```rust
+use apbase::common::ApbaseError;
+use apbase::cross_validate::Method;
+use apbase::mapping::{Bounds, MapOptions};
+use ndarray::Array1;
+
+/// Call once at service startup, before handling any request.
+fn configure_apbase() -> Result<(), ApbaseError> {
+    let env_or = |key: &str, default: usize| {
+        std::env::var(key).ok().and_then(|value| value.parse().ok()).unwrap_or(default)
+    };
+    apbase::config.set("n_threads", env_or("APBASE_N_THREADS", 2))?;
+    apbase::config.set("grid_max_points_ceiling", env_or("APBASE_GRID_MAX_POINTS", 100_000_000))?;
+    Ok(())
+}
+
+struct MapResponse {
+    method: Method,
+    x: Array1<f64>,
+    y: Array1<f64>,
+    z: Array1<f64>,
+    rmse: f64,            // LOO-CV RMSE of the selected method
+    n_source_points: i64, // points kept after filtering
+}
+
+fn build_map_response(
+    x: &[f64],
+    y: &[f64],
+    z: &[f64],
+    resolution: f64,
+    bounds: Option<Bounds>,
+) -> Result<MapResponse, ApbaseError> {
+    let result = apbase::create_map(x, y, z, MapOptions {
+        bounds,
+        max_cv_points: 500,
+        max_neighbors: 40,
+        seed: Some(42),
+        ..MapOptions::new(resolution)
+    })?;
+
+    let selected_cv = match result.method {
+        Method::Idw => &result.cross_validation.idw,
+        Method::Kriging => &result.cross_validation.kriging,
+    };
+    Ok(MapResponse {
+        method: result.method,
+        rmse: selected_cv.rmse,
+        n_source_points: result.n_source_points,
+        x: result.x,
+        y: result.y,
+        z: result.z,
+    })
+}
 ```
 
 :::
 
 ::::
 
-For concurrent services, call `apbase.create_map(...)` per request or create a
+The examples set `n_threads` explicitly only to default to 2 threads instead
+of 1. `APBASE_GRID_MAX_POINTS` is a variable of these examples, not one APbase
+reads. `seed=42` fixes the cross-validation sample, so the same input always
+selects the same method.
+
+For concurrent services, call `create_map` per request or create a
 `Map` instance inside the request or job. Reusing a `Map` instance is useful
 for sequential jobs, but it stores the last result on the instance.
 
@@ -127,21 +187,21 @@ oversubscribes the CPU and usually makes kriging slower.
 - Pass one-dimensional numeric arrays for the source x coordinates, y
   coordinates, and values.
 - Prefer contiguous `float64` arrays at service boundaries to avoid hidden
-  copies.
-- Projected metric coordinates are used directly.
+  copies. In Rust, `&[f64]` and `Vec<f64>` are used without conversion.
+- Projected coordinates are used directly.
 - Geographic longitude/latitude input is supported; pass `resolution` in
   meters so distances are handled correctly.
 - When the interpolation domain is known, pass its boundary in the format
   supported by the target language. In Python, this can be a Shapely geometry,
-  WKT, or WKB value.
-- Keep dense raster creation at the edge of the pipeline. Store compact
-  map points unless a downstream consumer specifically needs a padded raster.
+  WKT, or WKB value. In Rust, it is a `Bounds` built from a WKT string, WKB
+  bytes, or a `geos::Geometry`.
 
 ## Install and deploy
 
 The distributed package already includes its compiled numerical extensions.
-For the current Python package, install it with `pip`; application images and
-workers do not need to build the native extension themselves.
+Install it with `pip` for Python or `cargo` for Rust; see {doc}`installation`
+for requirements. Application images and workers do not need to build the
+native kernels themselves.
 
 ::::{tab-set}
 
@@ -154,16 +214,28 @@ python -m pip install apbase
 
 :::
 
+:::{tab-item} Rust
+:sync: rust
+
+```bash
+cargo add apbase
+cargo build --release
+```
+
+The runtime image still needs the Fortran/OpenMP/BLAS runtime, GEOS, and PROJ
+shared libraries.
+
+:::
+
 ::::
 
 After installation:
 
-1. Set `APBASE_N_THREADS` and any ceiling overrides in the service
-   environment.
-2. Run a small startup smoke test that imports `apbase`, builds a tiny map, and
-   verifies native extensions load correctly.
+1. Set `APBASE_N_THREADS`, and any variables your startup code maps to
+   `apbase.config` (such as the ceilings above), in the service environment.
+2. Run a small startup smoke test that loads `apbase`, builds a tiny map, and
+   verifies the native kernels run correctly.
 3. Keep API, queue, storage, and authentication code in your application; use
-   APbase as the deterministic geospatial kernel.
+   APbase as the geospatial kernel.
 
-See {doc}`installation` for install commands and {doc}`quickstart` for the
-minimal map-generation call.
+See {doc}`quickstart` for the minimal map-generation call.

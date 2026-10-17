@@ -1,9 +1,12 @@
 # APbase
 
-APbase is a high-performance geospatial mapping pipeline for irregular field
-data. It filters source points, builds a target grid, fits the variogram,
-compares interpolation methods, and selects the best result through validation.
-The output is a ready-to-use map, without requiring each mathematical step to
-be configured by hand.
+APbase turns irregular field data, such as yield-monitor logs, soil samples,
+and sensor readings, into validated maps. It filters the source points,
+handles geographic coordinates when needed, builds the target grid, fits the
+variogram, compares interpolation methods, and keeps the one with the lower
+cross-validation RMSE. You get a ready-to-use map without choosing a
+mathematical model by hand.
 
 Python package: [apbase-python](https://github.com/ap-base/apbase-python)
+
+Rust crate: [apbase-rust](https://github.com/ap-base/apbase-rust)

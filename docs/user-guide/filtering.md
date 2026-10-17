@@ -1,8 +1,8 @@
 # Spatial filtering
 
 `SpatialFilter` cleans the source points before interpolation. It removes
-invalid rows and, when enabled, global and local spatial outliers using a
-global-then-local approach developed for high-density agricultural data
+invalid rows and, when enabled, global outliers and local spatial outliers,
+using a global-then-local approach developed for high-density agricultural data
 {cite}`Maldaner2018,Maldaner2020`.
 
 You usually do not need to call it yourself. `apbase.Map` runs the filter
@@ -28,6 +28,25 @@ x_filtered, y_filtered, z_filtered = spatial_filter.filter()
 
 :::
 
+:::{tab-item} Rust
+:sync: rust
+
+```rust
+use apbase::filtering::{FilterLevel, SpatialFilter, SpatialFilterOptions};
+
+let mut spatial_filter = SpatialFilter::new(SpatialFilterOptions {
+    filter_level: FilterLevel::Light,
+    max_neighbors: 120,
+    cell_factor: 3,
+    ..Default::default()
+})?;
+spatial_filter.fit(&x, &y, &z)?;
+
+let (x_filtered, y_filtered, z_filtered) = spatial_filter.filter()?;
+```
+
+:::
+
 ::::
 
 ## What it does
@@ -46,14 +65,16 @@ Filtering happens in two passes:
 ## Parameters
 
 `x`, `y` : array_like
-: Source coordinates passed to `fit`. Use projected/metric coordinates when
-  `radius` is metric.
+: Source coordinates passed to `fit`. `SpatialFilter` does not convert
+  longitude/latitude: pass projected coordinates, in the same unit as
+  `radius`.
 
 `z` : array_like
 : Source values. Must have the same length as `x` and `y`.
 
 `radius` : float, optional
-: Local search radius. If omitted, a variogram is fit and `range / 3` is used.
+: Local search radius. If omitted, a variogram is fitted and `range / 3` is
+  used.
 
 `filter_level` : {"light", "moderate", "strict", "aggressive"}, default `"light"`
 : Local outlier threshold, from loosest to strictest.
@@ -66,7 +87,9 @@ Filtering happens in two passes:
   `radius`.
 
 `cell_factor` : int, default `3`
-: Spatial grid factor used by the local neighborhood search.
+: Speed setting for the neighbor search. Points are indexed in square cells
+  of size `radius / cell_factor`; higher values give smaller cells, so fewer
+  out-of-range points are scanned, at the cost of more cells in memory.
 
 `dedup_radius`, `dedup_z_tol` : float, default `0.0`
 : Optional duplicate handling for dense GPS logs. Leave disabled unless
@@ -76,10 +99,10 @@ Filtering happens in two passes:
 
 After `fit`, you can inspect the result in three ways:
 
-- `filter()` -- filtered `(x, y, z)` arrays (only the points that passed).
-- `mask()` -- boolean keep-mask aligned with the original input.
-- `statistics` -- per-point diagnostics (`pct_diff`, local z-score, local
-  probability) for every input point, including ones that were dropped.
+- `filter()`: filtered `(x, y, z)` arrays (only the points that passed).
+- `mask()`: boolean keep-mask aligned with the original input.
+- `statistics`: per-point diagnostics (`pct_diff`, `local_z`, `local_prob`)
+  for every input point, including ones that were dropped.
 
 ## Duplicate-heavy sources
 

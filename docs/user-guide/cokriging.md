@@ -6,7 +6,7 @@ NDVI, elevation, or soil EC. The workflow has three steps: screen candidate
 variables, fit and interpolate with the ones that pass, and cross-validate to
 check whether cokriging actually improves the result.
 
-Co-kriging is an advanced workflow. It is not part of the default
+Cokriging is an advanced workflow. It is not part of the default
 `apbase.Map` selection today. Use it when you have meaningful secondary
 variables and want to test whether they reduce error.
 
@@ -20,9 +20,13 @@ from apbase.cross_variogram import screen_secondary_variables
 from apbase.cokriging import CoKriging
 from apbase.cross_validate import cross_validate_cokriging, select_best_model
 
-# 1. Screen candidates -- keep only the admissible ones
-screened = screen_secondary_variables(x0, y0, z0, {"ndvi": (xn, yn, zn), "ec": (xe, ye, ze)})
-screened.report      # per-candidate rho, p-value, admissible_fraction, decision
+# 1. Screen candidates: keep only those that pass both tests
+screened = screen_secondary_variables(
+    x0, y0, z0,
+    {"ndvi": (xn, yn, zn), "ec": (xe, ye, ze)},
+    max_colocation_dist=30.0,  # pair samples up to 30 units apart
+)
+screened.report      # per-candidate rho, p_value, n_pairs, decision, status, ...
 secondaries = screened.selected   # e.g. {"ndvi": (xn, yn, zn)}
 
 # 2. Fit and interpolate
@@ -38,11 +42,59 @@ best.method, best.significant
 
 :::
 
+:::{tab-item} Rust
+:sync: rust
+
+```rust
+use apbase::cokriging::{CoKriging, CoKrigingMethod, CoKrigingOptions, SecondaryInput};
+use apbase::cross_validate::{
+    CrossValidateCokrigingOptions, SelectBestModelOptions, cross_validate_cokriging, select_best_model,
+};
+use apbase::cross_variogram::{ScreeningOptions, screen_secondary_variables};
+use indexmap::IndexMap;
+
+// 1. Screen candidates: keep only those that pass both tests
+let candidates = IndexMap::from([
+    ("ndvi".to_string(), (xn.clone(), yn.clone(), zn.clone())),
+    ("ec".to_string(), (xe.clone(), ye.clone(), ze.clone())),
+]);
+let screened = screen_secondary_variables(
+    &x0, &y0, &z0,
+    &candidates,
+    ScreeningOptions { max_colocation_dist: Some(30.0), ..Default::default() }, // pair samples up to 30 units apart
+)?;
+screened.report;                                      // per-candidate rho, p_value, n_pairs, decision, status, ...
+let secondaries = SecondaryInput::from(screened.selected); // e.g. {"ndvi": (xn, yn, zn)}
+
+// 2. Fit and interpolate
+let mut ck = CoKriging::new(CoKrigingOptions {
+    method: CoKrigingMethod::Icm,
+    max_neighbors: 40,
+    min_neighbors: 3,
+    ..Default::default()
+})?;
+ck.fit(&x0, &y0, &z0, &secondaries)?;
+let z_targets = ck.interpolate(&targets)?; // targets: (n, 2) array
+
+// 3. Confirm it's actually better than plain kriging via LOO-CV
+let cv = cross_validate_cokriging(&x0, &y0, &z0, &secondaries, CrossValidateCokrigingOptions::default())?;
+let best = select_best_model(&cv.by_method, SelectBestModelOptions::default())?;
+(best.method, best.significant);
+```
+
+:::
+
 ::::
 
 Do not skip the first step. Passing an unrelated secondary variable directly
 to `CoKriging` may not raise an error, but it can make the estimate worse.
-Always screen candidates first.
+
+Set `max_colocation_dist` when the secondaries are sampled at their own
+locations, as NDVI or EC surfaces usually are. Screening compares primary and
+secondary values in pairs, and with the default `None` a pair forms only where
+the coordinates are identical. Without it, no pairs form and every candidate
+is rejected with status `"insufficient sample"`. Use a distance on the order of
+the secondary's sampling spacing.
 
 ## Core inputs
 
@@ -66,14 +118,14 @@ Always screen candidates first.
 ## Step 1: screening
 
 `screen_secondary_variables` checks whether each candidate has a meaningful
-correlation with the primary (Fisher $z$-test) and an admissible cross-
-variogram (Cauchy-Schwarz check). Only candidates that pass both checks are
-kept. See {doc}`../methodology/covariate-screening` for the statistics.
+correlation with the primary (Fisher $z$-test) and an admissible
+cross-variogram (Cauchy–Schwarz check). Only candidates that pass both checks
+are kept. See {doc}`../methodology/covariate-screening` for the statistics.
 
 ### Screening parameters
 
 `alpha` : float, default `0.05`
-: Significance level for the Fisher z-test.
+: Significance level for the Fisher $z$-test.
 
 `correction` : {"bonferroni", "none"}, default `"bonferroni"`
 : Multiple-testing correction used when screening several candidates.
@@ -87,8 +139,8 @@ kept. See {doc}`../methodology/covariate-screening` for the statistics.
   admissibility bound.
 
 `max_colocation_dist` : float, optional
-: Maximum distance used to pair primary and secondary samples. `None` requires
-  exact coordinate coincidence.
+: Maximum distance used to pair primary and secondary samples. `None` pairs
+  only identical coordinates (see above).
 
 ::::{tab-set}
 
@@ -101,7 +153,31 @@ screened = screen_secondary_variables(
     {"ndvi": (xn, yn, zn), "ec": (xe, ye, ze), "random_noise": (xr, yr, zr)},
     alpha=0.05,
     min_abs_rho=0.3,
+    max_colocation_dist=30.0,
 )
+```
+
+:::
+
+:::{tab-item} Rust
+:sync: rust
+
+```rust
+let candidates = IndexMap::from([
+    ("ndvi".to_string(), (xn, yn, zn)),
+    ("ec".to_string(), (xe, ye, ze)),
+    ("random_noise".to_string(), (xr, yr, zr)),
+]);
+let screened = screen_secondary_variables(
+    &x0, &y0, &z0,
+    &candidates,
+    ScreeningOptions {
+        alpha: 0.05,
+        min_abs_rho: 0.3,
+        max_colocation_dist: Some(30.0),
+        ..Default::default()
+    },
+)?;
 ```
 
 :::
@@ -109,9 +185,12 @@ screened = screen_secondary_variables(
 ::::
 
 `screened.selected` already has the shape expected by `CoKriging.fit`, so pass
-it directly as `secondaries`. `screened.report` includes every candidate,
-including rejected ones, and explains each decision. It is useful when you
-need to record why a variable was dropped.
+it directly as `secondaries` (in Rust,
+`SecondaryInput::from(screened.selected)`). `screened.report` includes every
+candidate, including rejected ones: each `CovariateReport` holds `rho`,
+`p_value`, `n_pairs`, `admissible_fraction`, `decision`, `status`, and the
+fitted `model_params`. It is useful when you need to record why a variable was
+dropped.
 
 ## Step 2: fitting and interpolating
 
@@ -128,13 +207,31 @@ estimates = ck.interpolate(targets)
 
 :::
 
+:::{tab-item} Rust
+:sync: rust
+
+```rust
+let mut ck = CoKriging::new(CoKrigingOptions {
+    method: CoKrigingMethod::Icm,
+    radius: None,
+    max_neighbors: 40,
+    min_neighbors: 3,
+    ..Default::default()
+})?;
+ck.fit(&x0, &y0, &z0, &secondaries)?;
+let estimates = ck.interpolate(&targets)?;
+```
+
+:::
+
 ::::
 
 ### Fitting parameters
 
 `method` : {"collocated", "icm", "lmc"}, default `"collocated"`
-: Co-kriging model. `"icm"` is a reasonable default when unsure: no Markov
-  screening assumption and no per-secondary shape choice to tune.
+: Cokriging model. The default `"collocated"` is the cheapest but has the
+  requirements described below. When they are not met, use `"icm"`: it has
+  none of them and no per-structure shapes to tune.
 
 `radius` : float, optional
 : Local search radius. If omitted, APbase derives it from the primary
@@ -148,16 +245,25 @@ estimates = ck.interpolate(targets)
 : Number of nested LMC structures. Used only by `"lmc"`.
 
 `model_values` : array_like, optional
-: Precomputed model values. Currently supported for `"collocated"`.
+: Precomputed model values. Only `"collocated"` accepts it.
 
-`ck.model_params` gives readable fitted parameters (per-method shape
-differs -- see the class docstring); `ck.model_values` gives the flat
-native vector, useful for reusing a fit without re-running it.
+`ck.model_params` gives readable fitted parameters (their structure differs by
+method; see the class docstring); `ck.model_values` gives the flat native
+vector, which can be passed back as `model_values` to reuse a collocated fit.
+In Rust, both are getters: `ck.model_params()?` returns a
+`CoKrigingModelParams` enum with one variant per method, and
+`ck.model_values()?` the vector.
 
 **Collocated cokriging needs the secondary value at every interpolation
 target**, not only at its source points (see the class docstring). If needed,
-pre-interpolate a sparse secondary onto a sufficiently dense grid first.
-ICM/LMC do not have this requirement.
+pre-interpolate a sparse secondary onto a sufficiently dense grid first. It
+also relies on the Markov Model 1 (MM1) hypothesis: the secondary value at the
+target is assumed to make farther secondary data redundant (see
+{doc}`../methodology/cokriging`). Finally, collocated cokriging estimates each
+secondary's correlation from samples at the same coordinates as the primary.
+If a secondary has too few of them, `fit` raises a `ValueError`; use `"icm"`
+or `"lmc"` for such heterotopic data. ICM and LMC have none of these
+requirements.
 
 ## Step 3: cross-validating
 
@@ -182,10 +288,9 @@ actually beats plain kriging on *this* dataset.
 
 ```python
 from apbase.cross_validate import cross_validate_cokriging, select_best_model
-from apbase.kriging import Kriging
 
 cv = cross_validate_cokriging(x0, y0, z0, secondaries, max_neighbors=40, min_neighbors=3)
-cv.by_method["icm"].rmse, cv.by_method["lmc"].rmse, cv.by_method["collocated"].rmse
+{name: result.rmse for name, result in cv.by_method.items()}
 
 best = select_best_model(cv.by_method)
 best.method       # e.g. "icm"
@@ -194,13 +299,38 @@ best.significant  # True if the margin over the runner-up is unlikely due to cha
 
 :::
 
+:::{tab-item} Rust
+:sync: rust
+
+```rust
+use apbase::cross_validate::{
+    CrossValidateCokrigingOptions, SelectBestModelOptions, cross_validate_cokriging, select_best_model,
+};
+
+let cv = cross_validate_cokriging(
+    &x0, &y0, &z0,
+    &secondaries,
+    CrossValidateCokrigingOptions { max_neighbors: 40, min_neighbors: 3, ..Default::default() },
+)?;
+for (name, result) in &cv.by_method {
+    println!("{name}: {}", result.rmse);
+}
+
+let best = select_best_model(&cv.by_method, SelectBestModelOptions::default())?;
+best.method;      // e.g. "icm"
+best.significant; // true if the margin over the runner-up is unlikely due to chance
+```
+
+:::
+
 ::::
 
-`cross_validate_cokriging` runs leave-one-out on the primary for all
-three methods in one pass, sharing one primary spatial index; see
-{doc}`../methodology/cross-validation` for what stays fixed (the
-coregionalization models) versus what is genuinely held out (the
-primary). Compare `cv.by_method[...]` against a plain
-`apbase.cross_validate.cross_validate(x0, y0, z0)` kriging-only baseline
-to check whether adding secondaries helped at all, not just which
-cokriging method is best among themselves.
+`cross_validate_cokriging` runs leave-one-out on the primary for all three
+methods in one pass. A method whose model cannot be fitted is left out of
+`cv.by_method` instead of failing the run; {doc}`../methodology/cross-validation`
+explains what is held out and when a method is dropped.
+
+This tells you which cokriging method is best, not whether adding secondaries
+helped at all. To check that, compare `cv.by_method[...]` against the
+`result.kriging` scores from a plain
+`apbase.cross_validate.cross_validate(x0, y0, z0)` run.

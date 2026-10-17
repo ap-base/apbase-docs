@@ -1,4 +1,4 @@
-# Inverse distance weighting
+# Inverse distance weighting (IDW)
 
 `IDW` implements Shepard's inverse distance weighting method
 {cite}`Shepard1968`. It estimates a target value as a weighted average of
@@ -27,7 +27,7 @@ distance).
 
 ## Effect of `power`
 
-- **Higher `power`** concentrates weight on the very nearest points --
+- **Higher `power`** concentrates weight on the very nearest points;
   the surface becomes closer to a Voronoi-style nearest-neighbor
   assignment, with more visible "bullseyes" around source points.
 - **Lower `power`** spreads influence more evenly across all neighbors in
@@ -38,14 +38,14 @@ distance).
 ## Local neighborhood, not the whole dataset
 
 `IDW` in APbase is *local*: the sum uses only the nearest `max_neighbors`
-source points within `radius` of $x_0`, not every point in the dataset.
-`min_neighbors` sets a floor. Targets with too few in-range neighbors return
-`NaN` instead of an estimate based on too little local information. This keeps
-the cost bounded per target and keeps estimates tied to nearby evidence.
+source points within `radius` of $x_0$, not every point in the dataset.
+When fewer than `min_neighbors` points fall within `radius`, the target uses
+the `max_neighbors` nearest points regardless of distance, so sparse areas
+still get an estimate. This keeps the cost bounded per target and keeps
+estimates tied to the nearest available evidence.
 
 ## When `radius` is not given
 
 If `radius` is omitted, APbase fits a {doc}`variogram <variogram-fitting>`
-from the source data and uses `range / 3`. This gives the search a radius that
-usually includes meaningful spatial correlation without reaching too far into
-uncorrelated data.
+from the source data and derives the radius from its `range`, as described at
+the end of that page.
