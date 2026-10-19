@@ -10,3 +10,6 @@ mathematical model by hand.
 Python package: [apbase-python](https://github.com/ap-base/apbase-python)
 
 Rust crate: [apbase-rust](https://github.com/ap-base/apbase-rust)
+
+The documentation is also published in Brazilian Portuguese (`docs/pt-br/`).
+See [TRANSLATING.md](TRANSLATING.md) for how translations are organized.
