@@ -43,7 +43,8 @@ source_suffix = {
 
 language = "en"
 
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+# Translations (docs/pt-br/) mirror the English pages and are rendered by apbase.io, not by Sphinx.
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "pt-br"]
 
 html_theme = "furo"
 html_title = "APbase"
