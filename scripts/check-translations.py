@@ -2,7 +2,10 @@
 
 Translations live under docs/<locale>/ with the same paths as the English pages
 (see TRANSLATING.md). A translation counts as outdated when its English source
-has commits after the translation's last commit.
+has commits after the translation's last commit. The API reference pages
+(docs/api/*.rst and index.md) are translated as Markdown (docs/<locale>/api/*.md);
+their text comes from the docstrings of the apbase version pinned in
+requirements-docs.txt, so a change there outdates them too.
 
 Usage: python3 scripts/check-translations.py [--locale pt-br] [--strict]
 --strict exits with status 1 when anything is missing or outdated.
@@ -18,8 +21,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 LOCALES = ("pt-br",)
-# Generated from English docstrings by Sphinx autodoc, so never translated.
-UNTRANSLATED_DIRS = ("api", "_build", "_static", "_templates")
+UNTRANSLATED_DIRS = ("_build", "_static", "_templates")
+# Pins the apbase version whose docstrings Sphinx autodoc turns into the API reference.
+API_DOCSTRINGS = ROOT / "requirements-docs.txt"
 
 
 def git(*args: str) -> str:
@@ -36,7 +40,12 @@ def last_commit(path: Path) -> tuple[str, int] | None:
 
 def english_pages() -> list[Path]:
     skip = set(LOCALES) | set(UNTRANSLATED_DIRS)
-    return sorted(p for p in DOCS.rglob("*.md") if p.relative_to(DOCS).parts[0] not in skip)
+    pages = [p for p in DOCS.rglob("*.md") if p.relative_to(DOCS).parts[0] not in skip]
+    return sorted([*pages, *DOCS.glob("api/*.rst")])
+
+
+def sources_of(page: Path) -> list[Path]:
+    return [page, API_DOCSTRINGS] if page.relative_to(DOCS).parts[0] == "api" else [page]
 
 
 def main() -> int:
@@ -52,16 +61,19 @@ def main() -> int:
 
     for source in pages:
         rel = source.relative_to(DOCS)
-        target = DOCS / args.locale / rel
+        target = DOCS / args.locale / rel.with_suffix(".md")
         if not target.exists():
             missing.append(str(rel))
             continue
-        source_commit, target_commit = last_commit(source), last_commit(target)
+        target_commit = last_commit(target)
         if target_commit is None:
             uncommitted.append(str(rel))
             continue
+        sources = sources_of(source)
+        source_commit = max((c for c in map(last_commit, sources) if c), key=lambda c: c[1], default=None)
         if source_commit and source_commit[1] > target_commit[1]:
-            newer = git("log", "--format=%h %s", f"{target_commit[0]}..HEAD", "--", str(source.relative_to(ROOT)))
+            paths = [str(s.relative_to(ROOT)) for s in sources]
+            newer = git("log", "--format=%h %s", f"{target_commit[0]}..HEAD", "--", *paths)
             outdated.append((str(rel), newer.splitlines() or [f"{source_commit[0][:7]} (newer than the translation)"]))
 
     done = len(pages) - len(missing) - len(outdated)

@@ -69,4 +69,4 @@ cokriging
 
 Para a matemática por trás da escolha automática entre IDW e krigagem, veja
 {doc}`../methodology/index`. Para as assinaturas públicas, veja a
-{doc}`referência da API (em inglês) <../api/index>`.
+{doc}`referência da API <../api/index>`.
