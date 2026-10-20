@@ -82,5 +82,5 @@ quickstart
 production
 user-guide/index
 methodology/index
-Referência da API (em inglês) <api/index>
+Referência da API <api/index>
 ```

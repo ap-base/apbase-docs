@@ -119,6 +119,6 @@ da vizinhança local. Cada ponto de entrada continua sendo avaliado
 individualmente. Deixe os dois em `0.0`, a menos que você veja esse padrão nos
 seus dados.
 
-Veja {py:class}`apbase.filtering.SpatialFilter` na referência da API (em
-inglês) para todos os parâmetros, inclusive os ajustados com menos frequência
+Veja {py:class}`apbase.filtering.SpatialFilter` na referência da API para
+todos os parâmetros, inclusive os ajustados com menos frequência
 (`candidate_fraction`, `global_iqr_whisker`).
