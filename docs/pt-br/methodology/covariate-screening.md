@@ -73,12 +73,13 @@ de um semivariograma direto, aqui `nugget` (efeito pepita) e `partial_sill`
 sozinho, uma covariância direta válida; a verificação de Cauchy–Schwarz acima
 confere se ele pode ser usado com segurança.
 
-O `CrossVariogram` é simétrico e aceita dados heterotópicos: `a` e `b` não
-precisam compartilhar os locais de amostragem. O ajuste pareia as duas
-variáveis por vizinho mais próximo. `max_colocation_dist` limita a distância
-máxima de um par; `None` exige coincidência exata. O mesmo componente é
-reaproveitado para cada par de variáveis nos ajustes de corregionalização do
-ICM e do LMC.
+O `CrossVariogram` aceita dados heterotópicos: `a` e `b` não precisam
+compartilhar os locais de amostragem. O ajuste pareia cada amostra de `a` com o
+ponto de `b` mais próximo e mede os lags entre os locais de `a`, então trocar
+`a` e `b` só dá o mesmo ajuste quando as duas compartilham os locais.
+`max_colocation_dist` limita a distância máxima de um par; `None` exige
+coincidência exata. O mesmo componente é reaproveitado para cada par de
+variáveis nos ajustes de corregionalização do ICM e do LMC.
 
 ## Usando o resultado
 

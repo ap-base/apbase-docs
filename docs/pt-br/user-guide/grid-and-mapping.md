@@ -43,8 +43,8 @@ roda o pipeline de mapeamento completo:
   como `None` para a escolha automática.
 
 `power` : float, padrão `2.0`
-: Expoente da distância no IDW. Só é usado se o IDW vencer a validação
-  cruzada.
+: Expoente da distância no IDW. É usado na validação cruzada leave-one-out do
+  IDW e, se o IDW vencer, na interpolação final.
 
 `max_neighbors` : int, padrão `40`
 : Número máximo de pontos amostrais locais usados por ponto a estimar, na
@@ -191,8 +191,9 @@ a validação cruzada e o modelo final de krigagem.
   coordenadas original, sem preenchimento com NaN.
 
 `result.method` : {"idw", "kriging"}
-: Método com menor RMSE leave-one-out. Em Rust, um enum `Method` que é igual a
-  `"idw"` ou `"kriging"` numa comparação.
+: Método com menor RMSE leave-one-out nos pontos retirados em que os dois
+  métodos deram uma predição finita (um empate fica com o IDW). Em Rust, um
+  enum `Method` que é igual a `"idw"` ou `"kriging"` numa comparação.
 
 `result.cross_validation`
 : Relatório da validação IDW × krigagem usado na seleção do modelo.

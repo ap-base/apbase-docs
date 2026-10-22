@@ -70,11 +70,12 @@ Unlike an auto-variogram, `nugget` and `partial_sill` may be negative here.
 A cross-variogram does not need to be a valid direct covariance by itself;
 the Cauchy–Schwarz check above verifies whether it can be used safely.
 
-`CrossVariogram` is symmetric and supports heterotopic data: `a` and `b` do
-not need to share sample locations. The fit pairs them with a nearest-neighbor
-join. `max_colocation_dist` limits how far apart a pair can be; `None`
-requires exact coincidence. The same building block is reused for each
-variable pair in the ICM and LMC coregionalization fits.
+`CrossVariogram` supports heterotopic data: `a` and `b` do not need to share
+sample locations. The fit pairs each `a` sample with its nearest `b` point and
+measures lags between the `a` locations, so swapping `a` and `b` gives the same
+fit only when they share locations. `max_colocation_dist` limits how far apart a
+pair can be; `None` requires exact coincidence. The same building block is
+reused for each variable pair in the ICM and LMC coregionalization fits.
 
 ## Using the result
 

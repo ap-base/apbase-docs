@@ -62,8 +62,8 @@ result.method;                      // Method::Idw or Method::Kriging, whichever
   {doc}`production`.
 - **Works with irregular, noisy points.** Invalid rows, global outliers, and
   local spatial outliers are removed before interpolation runs.
-- **Useful defaults.** When no search radius is provided, it is derived from
-  the fitted variogram's `range` (see {doc}`methodology/variogram-fitting`).
+- **Useful defaults.** The search radius is derived from the fitted
+  variogram's `range` (see {doc}`methodology/variogram-fitting`).
 
 See {doc}`quickstart` for a full worked example. Use {doc}`user-guide/index`
 and {doc}`methodology/index` when you need advanced control or want to audit

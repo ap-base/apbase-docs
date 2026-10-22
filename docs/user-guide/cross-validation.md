@@ -5,10 +5,11 @@ the same source data. It uses leave-one-out cross-validation with one shared
 setup: a single fitted variogram sets the common search radius and the kriging
 model, and both methods use the same spatial index.
 
-This is the decision step behind `apbase.Map`: it is how APbase chooses the
-method with the lower leave-one-out RMSE for the current dataset. Call it
-directly when you want to inspect the comparison or run it with your own
-limits.
+Its result feeds the decision step behind `apbase.Map`: `Map` passes it to
+`select_best_model`, which picks the method with the lower leave-one-out RMSE
+on the points both methods predicted (a tie goes to IDW). Call
+`cross_validate` directly when you want to inspect the comparison or run it
+with your own limits.
 
 ::::{tab-set}
 

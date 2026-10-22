@@ -20,13 +20,17 @@ $$
 \hat{\gamma}(h) = \frac{1}{2\,|N(h)|} \sum_{(i,j) \in N(h)} \left(z_i - z_j\right)^2
 $$
 
-where $N(h)$ is the set of point pairs whose separation falls in the lag
-bin centered on $h$. Three parameters control the estimate:
+where $N(h)$ is the set of point pairs whose separation falls in one lag bin,
+and $h$ is the mean separation of those pairs. Three parameters control the
+estimate:
 
-- `n_lags`: the number of bins the pairwise distance range is divided into.
+- `n_lags` (default `50`): the number of equal-width bins between 0 and the
+  distance cutoff. Pairs beyond the cutoff, and coincident points, are
+  ignored.
 - `max_pairs`: the maximum number of point pairs sampled when more are
   available.
-- `max_distance`: the maximum separation considered.
+- `max_distance` (default `0`): the distance cutoff. With `0`, the cutoff is
+  the 90th percentile of the sampled pair distances.
 
 ## Theoretical models
 
@@ -36,8 +40,9 @@ lag bin, rather than a function that can be evaluated at any distance.
 by a **nugget** $c_0$ (discontinuity at $h=0$, representing measurement noise
 or variability at scales shorter than the smallest lag), a **partial sill**
 $c$ (additional variance contributed by spatial structure), and a **range**
-$a$ (the distance beyond which points are treated as spatially uncorrelated).
-Writing $r = h / a$:
+$a$ (for the spherical model, the distance beyond which points are spatially
+uncorrelated; for the exponential and Gaussian models, the practical range
+described below). Writing $r = h / a$:
 
 **Spherical**
 
@@ -60,17 +65,22 @@ $$
 \gamma(h) = c_0 + c\left(1 - e^{-3r^{2}}\right)
 $$
 
-The factor of 3 in the exponential and Gaussian models is the *practical
-range* convention. It rescales $a$ so the model reaches about 95% of the sill
-at $h = a$, matching the spherical model's behavior of reaching the sill
-exactly at $h = a$ {cite}`Isaaks1989`. This keeps `range` comparable across
-the three models.
+These formulas apply for $h > 0$; at $h = 0$, $\gamma(0) = 0$.
+
+The factor of 3 in the exponential and Gaussian models is the *practical range*
+convention. It rescales $a$ so the structured part reaches about 95% of the
+partial sill at $h = a$ ($\gamma(a) \approx c_0 + 0.95\,c$), matching the
+spherical model's behavior of reaching the sill exactly at $h = a$
+{cite}`Isaaks1989`. This keeps `range` comparable across the three models.
 
 ## Fitting and model selection
 
-For each candidate model, $c_0$, $c$, and $a$ are chosen by weighted least
-squares between the model curve $\gamma(h)$ and the binned empirical estimate
-$\hat\gamma(h)$, with Cressie's weights {cite}`Cressie1993`:
+For each candidate model, $a$ is searched over 64 evenly spaced values, from
+one lag width to 1.5 times the distance cutoff, and the value with the lowest
+weighted error is kept. For each value of $a$, $c_0$ and $c$ are fitted by
+weighted least squares between the model curve $\gamma(h)$ and the binned
+empirical estimate $\hat\gamma(h)$, with Cressie's weights
+{cite}`Cressie1993`:
 
 $$
 w(h) = \frac{|N(h)|}{\gamma(h)^2}
@@ -99,7 +109,9 @@ When `radius` is omitted, APbase derives it from the fitted model's `range`:
 - from 10,000 points up, it is `range / 3`.
 
 `Map`, `IDW`, `Kriging`, `cross_validate`, `CoKriging`, and
-`cross_validate_cokriging` use this rule; cokriging applies it to the primary
-variogram. `SpatialFilter` always uses `range / 3`. The rule is available as
+`cross_validate_cokriging` use this rule. Cokriging applies it to the primary
+variogram's `range` for collocated cokriging and `cross_validate_cokriging`, and
+to the shared range of the joint fit for ICM and LMC. `SpatialFilter` always
+uses `range / 3`. The rule is available as
 `apbase.variogram.search_radius(model_params, n_points)` in Python and as the
 `search_radius(n_points)` method of a Rust `ModelParams`.

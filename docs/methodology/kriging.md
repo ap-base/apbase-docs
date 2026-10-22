@@ -57,6 +57,9 @@ $$
 \sigma_K^2(x_0) = \sum_{i=1}^{n} \lambda_i \, \gamma(d_{i0}) + \mu
 $$
 
+APbase does not compute or return the kriging variance: `Kriging.interpolate`
+returns only the estimates.
+
 Unlike IDW's fixed distance-decay weights, kriging accounts for redundancy
 between source points. Points clustered together carry partly redundant
 information, so kriging gives them less combined weight than the same number
