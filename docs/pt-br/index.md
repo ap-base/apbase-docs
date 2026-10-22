@@ -64,9 +64,8 @@ result.method;                      // Method::Idw ou Method::Kriging, o que tiv
 - **Funciona com pontos irregulares e com ruído.** Registros inválidos,
   outliers globais e outliers espaciais locais são removidos antes da
   interpolação.
-- **Padrões úteis.** Quando nenhum raio de busca é informado, ele é derivado do
-  alcance (`range`) do semivariograma ajustado (veja
-  {doc}`methodology/variogram-fitting`).
+- **Padrões úteis.** O raio de busca é derivado do alcance (`range`) do
+  semivariograma ajustado (veja {doc}`methodology/variogram-fitting`).
 
 Veja {doc}`quickstart` para um exemplo completo. Use {doc}`user-guide/index` e
 {doc}`methodology/index` quando precisar de controle avançado ou quiser

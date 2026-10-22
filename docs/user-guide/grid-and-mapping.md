@@ -42,7 +42,8 @@ mapping pipeline:
   for the automatic choice.
 
 `power` : float, default `2.0`
-: IDW distance exponent. Used only if IDW wins cross-validation.
+: IDW distance exponent. Used in IDW's leave-one-out cross-validation and, if
+  IDW wins, in the final interpolation.
 
 `max_neighbors` : int, default `40`
 : Maximum local source points used per target during cross-validation and
@@ -186,8 +187,9 @@ cross-validation, and the final kriging model.
   system, with no NaN padding.
 
 `result.method` : {"idw", "kriging"}
-: Method with the lower leave-one-out RMSE. In Rust, a `Method` enum that
-  compares equal to `"idw"` or `"kriging"`.
+: Method with the lower leave-one-out RMSE over the held-out points where both
+  methods gave a finite prediction (a tie goes to IDW). In Rust, a `Method`
+  enum that compares equal to `"idw"` or `"kriging"`.
 
 `result.cross_validation`
 : IDW-vs-kriging validation report used for model selection.

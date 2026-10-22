@@ -4,7 +4,7 @@ API de alto nível da cokrigagem.
 
 Estima uma variável primária com a ajuda de uma ou mais variáveis secundárias com correlação espacial. Rode antes `apbase.cross_variogram.screen_secondary_variables()` para selecionar as variáveis secundárias admissíveis.
 
-::::{py:class} apbase.cokriging.CoKriging(*, method='collocated', radius=None, max_neighbors=40, min_neighbors=3, n_structures=2, model_values=None)
+::::{py:class} apbase.cokriging.CoKriging(*, method='collocated', radius=None, max_neighbors=40, min_neighbors=3, n_structures=2, model_values=None, max_colocation_dist=None, max_secondary_neighbors=None)
 
 Classes base: `object`
 
@@ -15,11 +15,13 @@ Estima uma variável primária com a ajuda de uma ou mais variáveis secundária
 **Parâmetros**
 
 - **method** (*str*) – `"collocated"`, `"icm"` (modelo de corregionalização intrínseca) ou `"lmc"` (modelo linear de corregionalização completo).
-- **radius** (*float | None*) – Raio de busca local da vizinhança da primária. Se for `None`, usa o `range` do semivariograma da primária (`range / 3` com 10.000 pontos ou mais). Com menos de `min_neighbors` pontos amostrais da primária dentro dele, um ponto a estimar usa os `max_neighbors` mais próximos. Com `method="collocated"`, uma variável secundária sem nenhum valor dentro desse raio em torno de um ponto a estimar fica fora do sistema desse ponto (se não sobrar nenhuma: krigagem ordinária da primária); `"icm"`/`"lmc"` buscam a vizinhança de cada variável de forma independente, então variáveis secundárias heterotópicas funcionam diretamente.
+- **radius** (*float | None*) – Raio de busca local da vizinhança da primária. Se for `None`, usa o `range` do semivariograma da primária (`range / 3` com 10.000 pontos ou mais). Com menos de `min_neighbors` pontos amostrais da primária dentro dele, um ponto a estimar usa os `max_neighbors` mais próximos. Com `method="collocated"`, uma variável secundária sem nenhum valor dentro desse raio em torno de um ponto a estimar fica fora do sistema desse ponto (se não sobrar nenhuma: krigagem ordinária da primária); `"icm"`/`"lmc"` buscam a vizinhança de cada variável de forma independente.
 - **max_neighbors** (*int*) – Limites de vizinhos da primária, com o mesmo significado que no `Kriging`.
 - **min_neighbors** (*int*) – Limites de vizinhos da primária, com o mesmo significado que no `Kriging`.
 - **n_structures** (*int*) – Só com `method="lmc"`: número de estruturas de corregionalização aninhadas, incluindo a do efeito pepita. Padrão `2`.
 - **model_values** (*ArrayLike | None*) – Vetor de modelo de corregionalização pré-ajustado opcional, só com `"collocated"`. Se for informado, o {meth}`fit() <apbase.cokriging.CoKriging.fit>` não ajusta o semivariograma da primária nem os semivariogramas cruzados de cada variável secundária.
+- **max_colocation_dist** (*float | None*) – Distância dentro da qual uma amostra da primária é pareada com o ponto mais próximo da variável secundária para estimar as covariâncias cruzadas. `None` pareia só locais exatamente coincidentes; variáveis secundárias heterotópicas, como rasters, precisam de uma distância (por exemplo, metade da diagonal da célula).
+- **max_secondary_neighbors** (*int | None*) – Só com `"icm"`/`"lmc"`: número máximo de vizinhos de cada variável secundária por ponto a estimar. `None` usa `max_neighbors`. Variáveis secundárias densas precisam de bem menos vizinhos que a primária, já que as mais próximas encobrem as demais.
 
 :::{py:property} apbase.cokriging.CoKriging.method
 :type: str
@@ -93,6 +95,36 @@ Número de estruturas, usado só quando `method="lmc"`.
 **Tipo de retorno**
 
 int
+
+:::
+
+:::{py:property} apbase.cokriging.CoKriging.max_colocation_dist
+:type: float | None
+
+Distância de pareamento entre as amostras da primária e os pontos das variáveis secundárias.
+
+**Retorna**
+
+Distância usada para estimar as covariâncias cruzadas, ou `None` para só locais exatamente coincidentes.
+
+**Tipo de retorno**
+
+float ou None
+
+:::
+
+:::{py:property} apbase.cokriging.CoKriging.max_secondary_neighbors
+:type: int | None
+
+Número máximo de vizinhos de cada variável secundária por ponto a estimar (ICM e LMC).
+
+**Retorna**
+
+Limite explícito, ou `None` para usar `max_neighbors`.
+
+**Tipo de retorno**
+
+int ou None
 
 :::
 
@@ -269,7 +301,7 @@ numpy.ndarray
 
 ::::
 
-:::{py:function} apbase.cokriging.co_kriging(x0, y0, z0, secondaries, targets, *, method='collocated', model_values=None, radius=None, max_neighbors=40, min_neighbors=3)
+:::{py:function} apbase.cokriging.co_kriging(x0, y0, z0, secondaries, targets, *, method='collocated', model_values=None, radius=None, max_neighbors=40, min_neighbors=3, max_colocation_dist=None, max_secondary_neighbors=None)
 
 Ajusta a cokrigagem e estima os valores em `targets` numa única chamada.
 
@@ -287,6 +319,8 @@ Atalho de conveniência em torno de {class}`CoKriging <apbase.cokriging.CoKrigin
 - **radius** (*float ou None, padrão None*) – Raio de busca local. Se for `None`, deriva o `range` do semivariograma da primária (`range / 3` com 10.000 pontos ou mais).
 - **max_neighbors** (*int*) – Limites de vizinhos da primária usados pela busca local.
 - **min_neighbors** (*int*) – Limites de vizinhos da primária usados pela busca local.
+- **max_colocation_dist** (*float ou None, padrão None*) – Distância dentro da qual uma amostra da primária é pareada com o ponto mais próximo da variável secundária para estimar as covariâncias cruzadas; `None` pareia só locais exatamente coincidentes. Variáveis secundárias heterotópicas, como rasters, precisam de uma distância (por exemplo, metade da diagonal da célula).
+- **max_secondary_neighbors** (*int ou None, padrão None*) – Só com `"icm"`/`"lmc"`: número máximo de vizinhos de cada variável secundária por ponto a estimar; `None` usa `max_neighbors`.
 
 **Retorna**
 

@@ -20,14 +20,17 @@ $$
 \hat{\gamma}(h) = \frac{1}{2\,|N(h)|} \sum_{(i,j) \in N(h)} \left(z_i - z_j\right)^2
 $$
 
-em que $N(h)$ é o conjunto de pares de pontos cuja separação cai na classe de
-distância centrada em $h$. Três parâmetros controlam a estimativa:
+em que $N(h)$ é o conjunto de pares de pontos cuja separação cai numa classe
+de distância, e $h$ é a separação média desses pares. Três parâmetros
+controlam a estimativa:
 
-- `n_lags`: o número de classes em que a faixa de distâncias entre pares é
-  dividida.
+- `n_lags` (padrão `50`): o número de classes de mesma largura entre 0 e a
+  distância de corte. Pares além do corte, e pontos coincidentes, são
+  ignorados.
 - `max_pairs`: o número máximo de pares de pontos amostrados quando há mais
   disponíveis.
-- `max_distance`: a separação máxima considerada.
+- `max_distance` (padrão `0`): a distância de corte. Com `0`, o corte é o
+  percentil 90 das distâncias dos pares amostrados.
 
 ## Modelos teóricos
 
@@ -37,9 +40,10 @@ distância. O `Variogram` ajusta a ela três modelos teóricos candidatos, cada
 um definido por um **efeito pepita** $c_0$ (descontinuidade em $h=0$, que
 representa o erro de medição ou a variabilidade em escalas menores que o menor
 lag, a menor distância de separação), uma **contribuição** $c$ (variância
-adicional devida à estrutura espacial) e um **alcance** $a$ (a distância a
-partir da qual os pontos são tratados como sem correlação espacial).
-Escrevendo $r = h / a$:
+adicional devida à estrutura espacial) e um **alcance** $a$ (no modelo
+esférico, a distância a partir da qual os pontos ficam sem correlação
+espacial; nos modelos exponencial e gaussiano, o alcance prático descrito
+abaixo). Escrevendo $r = h / a$:
 
 **Esférico**
 
@@ -62,18 +66,23 @@ $$
 \gamma(h) = c_0 + c\left(1 - e^{-3r^{2}}\right)
 $$
 
+Essas fórmulas valem para $h > 0$; em $h = 0$, $\gamma(0) = 0$.
+
 O fator 3 nos modelos exponencial e gaussiano é a convenção do *alcance
-prático*. Ele reescala $a$ para que o modelo atinja cerca de 95% do patamar em
-$h = a$, igualando o comportamento do modelo esférico, que atinge o patamar
-exatamente em $h = a$ {cite}`Isaaks1989`. Assim o `range` (alcance) fica
-comparável entre os três modelos.
+prático*. Ele reescala $a$ para que a parte estruturada atinja cerca de 95% da
+contribuição em $h = a$ ($\gamma(a) \approx c_0 + 0{,}95\,c$), igualando o
+comportamento do modelo esférico, que atinge o patamar exatamente em $h = a$
+{cite}`Isaaks1989`. Assim o `range` (alcance) fica comparável entre os três
+modelos.
 
 ## Ajuste e seleção do modelo
 
-Para cada modelo candidato, $c_0$, $c$ e $a$ são escolhidos por mínimos
-quadrados ponderados entre a curva do modelo $\gamma(h)$ e a estimativa
-experimental por classes $\hat\gamma(h)$, com os pesos de Cressie
-{cite}`Cressie1993`:
+Para cada modelo candidato, $a$ é buscado entre 64 valores igualmente
+espaçados, de uma largura de classe até 1,5 vez a distância de corte, e fica o
+valor de menor erro ponderado. Para cada valor de $a$, $c_0$ e $c$ são
+ajustados por mínimos quadrados ponderados entre a curva do modelo $\gamma(h)$
+e a estimativa experimental por classes $\hat\gamma(h)$, com os pesos de
+Cressie {cite}`Cressie1993`:
 
 $$
 w(h) = \frac{|N(h)|}{\gamma(h)^2}
@@ -104,8 +113,9 @@ ajustado:
 - a partir de 10.000 pontos, é `range / 3`.
 
 `Map`, `IDW`, `Kriging`, `cross_validate`, `CoKriging` e
-`cross_validate_cokriging` usam essa regra; a cokrigagem a aplica ao
-semivariograma da variável primária. O `SpatialFilter` sempre usa
-`range / 3`. A regra está disponível como
+`cross_validate_cokriging` usam essa regra. A cokrigagem a aplica ao `range` do
+semivariograma da variável primária na cokrigagem colocalizada e no
+`cross_validate_cokriging`, e ao alcance compartilhado do ajuste conjunto no ICM
+e no LMC. O `SpatialFilter` sempre usa `range / 3`. A regra está disponível como
 `apbase.variogram.search_radius(model_params, n_points)` em Python e como o
 método `search_radius(n_points)` de um `ModelParams` em Rust.

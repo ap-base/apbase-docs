@@ -30,12 +30,12 @@ screened.report      # per-candidate rho, p_value, n_pairs, decision, status, ..
 secondaries = screened.selected   # e.g. {"ndvi": (xn, yn, zn)}
 
 # 2. Fit and interpolate
-ck = CoKriging(method="icm", max_neighbors=40, min_neighbors=3)
+ck = CoKriging(method="icm", max_neighbors=40, min_neighbors=3, max_colocation_dist=30.0)
 ck.fit(x0, y0, z0, secondaries)
 z_targets = ck.interpolate(targets)   # targets: (n, 2) array
 
 # 3. Confirm it's actually better than plain kriging via LOO-CV
-cv = cross_validate_cokriging(x0, y0, z0, secondaries)
+cv = cross_validate_cokriging(x0, y0, z0, secondaries, max_colocation_dist=30.0)
 best = select_best_model(cv.by_method)
 best.method, best.significant
 ```
@@ -71,13 +71,18 @@ let mut ck = CoKriging::new(CoKrigingOptions {
     method: CoKrigingMethod::Icm,
     max_neighbors: 40,
     min_neighbors: 3,
+    max_colocation_dist: Some(30.0),
     ..Default::default()
 })?;
 ck.fit(&x0, &y0, &z0, &secondaries)?;
 let z_targets = ck.interpolate(&targets)?; // targets: (n, 2) array
 
 // 3. Confirm it's actually better than plain kriging via LOO-CV
-let cv = cross_validate_cokriging(&x0, &y0, &z0, &secondaries, CrossValidateCokrigingOptions::default())?;
+let cv = cross_validate_cokriging(
+    &x0, &y0, &z0,
+    &secondaries,
+    CrossValidateCokrigingOptions { max_colocation_dist: Some(30.0), ..Default::default() },
+)?;
 let best = select_best_model(&cv.by_method, SelectBestModelOptions::default())?;
 (best.method, best.significant);
 ```
@@ -94,7 +99,9 @@ locations, as NDVI or EC surfaces usually are. Screening compares primary and
 secondary values in pairs, and with the default `None` a pair forms only where
 the coordinates are identical. Without it, no pairs form and every candidate
 is rejected with status `"insufficient sample"`. Use a distance on the order of
-the secondary's sampling spacing.
+the secondary's sampling spacing. `CoKriging` and `cross_validate_cokriging`
+pair samples the same way to estimate the cross-covariances, so pass them the
+same distance; without pairs, they raise a `ValueError`.
 
 ## Core inputs
 
@@ -200,7 +207,9 @@ dropped.
 :sync: python
 
 ```python
-ck = CoKriging(method="icm", radius=None, max_neighbors=40, min_neighbors=3)
+ck = CoKriging(
+    method="icm", radius=None, max_neighbors=40, min_neighbors=3, max_colocation_dist=30.0
+)
 ck.fit(x0, y0, z0, secondaries)
 estimates = ck.interpolate(targets)
 ```
@@ -216,6 +225,7 @@ let mut ck = CoKriging::new(CoKrigingOptions {
     radius: None,
     max_neighbors: 40,
     min_neighbors: 3,
+    max_colocation_dist: Some(30.0),
     ..Default::default()
 })?;
 ck.fit(&x0, &y0, &z0, &secondaries)?;
@@ -230,22 +240,33 @@ let estimates = ck.interpolate(&targets)?;
 
 `method` : {"collocated", "icm", "lmc"}, default `"collocated"`
 : Cokriging model. The default `"collocated"` is the cheapest but has the
-  requirements described below. When they are not met, use `"icm"`: it has
-  none of them and no per-structure shapes to tune.
+  two requirements described below. When they are not met, use `"icm"`: it
+  has neither of them and no per-structure shapes to tune.
 
 `radius` : float, optional
 : Local search radius. If omitted, APbase derives it from the primary
   variogram.
 
 `max_neighbors`, `min_neighbors` : int
-: Neighbor limits. For `"icm"` and `"lmc"`, these bound every variable's own
-  neighbor search.
+: Neighbor limits of the primary. For `"icm"` and `"lmc"`, each secondary
+  searches its own neighbors within `radius`, up to `max_secondary_neighbors`.
 
 `n_structures` : int, default `2`
 : Number of nested LMC structures. Used only by `"lmc"`.
 
 `model_values` : array_like, optional
 : Precomputed model values. Only `"collocated"` accepts it.
+
+`max_colocation_dist` : float, optional
+: Distance within which a primary sample is paired with its nearest secondary
+  point to estimate the cross-covariances. `None` pairs only identical
+  coordinates; heterotopic secondaries, such as rasters, need a distance (for
+  example, half the cell diagonal).
+
+`max_secondary_neighbors` : int, optional
+: Maximum neighbors of each secondary per target, for `"icm"` and `"lmc"`
+  only. `None` uses `max_neighbors`. Dense secondaries need far fewer than the
+  primary, since the nearest ones screen the rest.
 
 `ck.model_params` gives readable fitted parameters (their structure differs by
 method; see the class docstring); `ck.model_values` gives the flat native
@@ -259,11 +280,13 @@ target**, not only at its source points (see the class docstring). If needed,
 pre-interpolate a sparse secondary onto a sufficiently dense grid first. It
 also relies on the Markov Model 1 (MM1) hypothesis: the secondary value at the
 target is assumed to make farther secondary data redundant (see
-{doc}`../methodology/cokriging`). Finally, collocated cokriging estimates each
-secondary's correlation from samples at the same coordinates as the primary.
-If a secondary has too few of them, `fit` raises a `ValueError`; use `"icm"`
-or `"lmc"` for such heterotopic data. ICM and LMC have none of these
-requirements.
+{doc}`../methodology/cokriging`). ICM and LMC have neither requirement.
+
+Every method estimates the cross-covariances from primary samples paired with
+secondary points: at the same coordinates or, with `max_colocation_dist`, the
+nearest secondary point within that distance. If a secondary has too few
+pairs, `fit` raises a `ValueError` naming it; for heterotopic data, such as a
+raster, set `max_colocation_dist`.
 
 ## Step 3: cross-validating
 
@@ -278,7 +301,7 @@ actually beats plain kriging on *this* dataset.
 `seed` : int, optional
 : Seed used when validation samples a subset of primary points.
 
-`radius`, `max_neighbors`, `min_neighbors`, `n_structures`
+`radius`, `max_neighbors`, `min_neighbors`, `n_structures`, `max_colocation_dist`, `max_secondary_neighbors`
 : Same meaning as in `CoKriging`.
 
 ::::{tab-set}
@@ -289,7 +312,9 @@ actually beats plain kriging on *this* dataset.
 ```python
 from apbase.cross_validate import cross_validate_cokriging, select_best_model
 
-cv = cross_validate_cokriging(x0, y0, z0, secondaries, max_neighbors=40, min_neighbors=3)
+cv = cross_validate_cokriging(
+    x0, y0, z0, secondaries, max_neighbors=40, min_neighbors=3, max_colocation_dist=30.0
+)
 {name: result.rmse for name, result in cv.by_method.items()}
 
 best = select_best_model(cv.by_method)
@@ -310,7 +335,12 @@ use apbase::cross_validate::{
 let cv = cross_validate_cokriging(
     &x0, &y0, &z0,
     &secondaries,
-    CrossValidateCokrigingOptions { max_neighbors: 40, min_neighbors: 3, ..Default::default() },
+    CrossValidateCokrigingOptions {
+        max_neighbors: 40,
+        min_neighbors: 3,
+        max_colocation_dist: Some(30.0),
+        ..Default::default()
+    },
 )?;
 for (name, result) in &cv.by_method {
     println!("{name}: {}", result.rmse);

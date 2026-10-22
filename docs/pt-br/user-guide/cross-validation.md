@@ -6,10 +6,12 @@ uma única configuração compartilhada: um só semivariograma ajustado define o
 raio de busca comum e o modelo de krigagem, e os dois métodos usam o mesmo
 índice espacial.
 
-Esta é a etapa de decisão por trás do `apbase.Map`: é assim que o APbase
-escolhe o método com menor RMSE (raiz do erro quadrático médio) leave-one-out
-para o conjunto de dados atual. Chame-a diretamente quando quiser inspecionar
-a comparação ou rodá-la com os seus próprios limites.
+O resultado dela alimenta a etapa de decisão por trás do `apbase.Map`: o `Map`
+o passa para `select_best_model`, que escolhe o método com menor RMSE (raiz do
+erro quadrático médio) leave-one-out nos pontos que os dois métodos
+predisseram (um empate fica com o IDW). Chame o `cross_validate` diretamente
+quando quiser inspecionar a comparação ou rodá-la com os seus próprios
+limites.
 
 ::::{tab-set}
 

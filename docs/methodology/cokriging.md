@@ -44,9 +44,16 @@ been standardized this way.
 
 ## The block system (ICM and LMC)
 
-For **ICM** and **LMC**, each variable searches its own local neighborhood.
-`radius` and `max_neighbors` apply to every variable, not only the primary,
-so secondary variables do not need to share the primary's sample locations.
+For **ICM** and **LMC**, each variable searches its own local neighborhood
+within `radius`: the primary up to `max_neighbors`, each secondary up to
+`max_secondary_neighbors` (`max_neighbors` when unset). The search does not
+need the secondary variables to share the primary's sample locations, but the
+fit of the cross-covariances needs pairs for every pair of variables,
+secondary–secondary pairs included: samples matched with a point of the other
+variable at the same coordinates or, with `max_colocation_dist`, the nearest
+one within that distance. A secondary with fewer than two pairs with the
+primary raises a `ValueError`; a pair of variables whose pairs fill fewer than
+three lag bins makes the fit raise `CoKrigingInvalidModelError`.
 Writing $C_{uv}(h)$ for the fitted cross-covariance between variables $u$
 and $v$ at separation $h$, the weights and Lagrange multiplier $\mu$
 solve
@@ -109,9 +116,11 @@ independent per-pair fits often produce a near-zero nugget diagonal on
 low-noise data.
 
 **LMC (full Linear Model of Coregionalization).** LMC uses $S$ nested
-structures (index $0$ = nugget, $1, \dots, S{-}1$ continuous, at geometrically
-spread ranges), each with its own $(K+1)\times(K+1)$ coefficient matrix
-$\mathbf{B}^{(l)}$:
+structures (index $0$ = nugget, $1, \dots, S{-}1$ continuous), each with its
+own $(K+1)\times(K+1)$ coefficient matrix $\mathbf{B}^{(l)}$. The continuous
+structures share one shape (spherical, exponential, or Gaussian, chosen as in
+ICM) at evenly spaced ranges $a\,l/(S{-}1)$, where $a$ is the shared range of
+the same joint search as ICM, so the last structure has range $a$:
 
 $$
 C_{uv}(h) = \begin{cases}
@@ -131,9 +140,16 @@ structure by closed-form weighted least squares while holding the others
 fixed, then projects its matrix onto the PSD cone: negative eigenvalues are
 clipped to 0 and the matrix is rebuilt. Unlike ICM, positive
 semidefiniteness is therefore guaranteed by construction on every sweep
-rather than checked after fitting. Compared with ICM, LMC replaces the single
-shared shape with $S{-}1$ independently shaped continuous structures, at the
-cost of a heavier iterative fit.
+rather than checked after fitting. Compared with ICM, LMC splits the single
+shared structure into $S{-}1$ continuous structures of the same shape at
+different ranges, each with its own coefficient matrix, at the cost of a
+heavier iterative fit.
+
+With the Gaussian shape, ICM and LMC give each variable, and collocated
+cokriging gives the primary, a nugget of at least 0.01% of its total sill when
+they build the system (in cross-validation too). Without a nugget, a Gaussian
+model over close sources, such as raster pixels, leaves the system singular or
+with exploding weights. `model_params` still reports the fitted values.
 
 ## Collocated cokriging (MM1)
 
@@ -148,36 +164,42 @@ the primary's own covariance:
 
 $$
 C_{0u}(h) = \rho_u \, C_{00}(h) \qquad\qquad
-C_{uv}(0) = \rho_u \rho_v \, C_{00}(0) \; (u, v \geq 1)
+C_{uv}(0) = \rho_u \rho_v \, C_{00}(0) \; (u \neq v;\ u, v \geq 1)
 $$
+
+and $C_{uu}(0) = C_{00}(0)$, since each standardized secondary has the
+primary's variance.
 
 where $\rho_u$ is the primary-secondary correlation from
 {class}`~apbase.cross_variogram.CrossVariogram`. The system then has one
-row per primary neighbor, one per secondary, and one constraint row, which is
-far smaller than the full ICM/LMC block system.
+row per primary neighbor, one per secondary with a point within `radius`, and
+one constraint row, which is far smaller than the full ICM/LMC block system.
 
-The trade-off is twofold. The secondary value must be available at every
-interpolation target, so a sparse secondary has to be pre-interpolated onto a
-denser point set first. And the result is only as good as the MM1 hypothesis
-itself.
+The trade-off is twofold. The collocated value is the secondary's nearest point
+within `radius`, used as if it sat at the target. A secondary with no point
+within `radius` is left out of that target's system, and with none left the
+target gets ordinary kriging of the primary, so a sparse secondary is best
+pre-interpolated onto a denser point set first. And the result is only as good
+as the MM1 hypothesis itself.
 
 ## Choosing a method
 
 | | Secondaries need own local search | System size per target | Coregionalization fit |
 |---|---|---|---|
-| Collocated | No: one collocated value at the target | primary neighbors + $K$ + 1 | closed-form $\rho_u$ per secondary |
+| Collocated | No: one collocated value at the target | primary neighbors + up to $K$ + 1 | closed-form $\rho_u$ per secondary |
 | ICM | Yes | $\sum_u n_u$ + 1 | one shared shape, joint pair fit |
-| LMC | Yes | $\sum_u n_u$ + 1 | $S$ shapes, Goulard & Voltz iterative |
+| LMC | Yes | $\sum_u n_u$ + 1 | $S$ structures of one shape, Goulard & Voltz iterative |
 
-Collocated is the cheapest option when its requirements above are met. ICM
-captures multi-point secondary structure with one shared shape. LMC allows a
-different shape for each structure when one shared shape is not enough, at a
-higher fitting cost.
+Collocated is the cheapest option when the trade-offs above are acceptable.
+ICM captures multi-point secondary structure with one shared structure. LMC
+adds structures at several ranges, each with its own coefficient matrix, when
+one structure is not enough, at a higher fitting cost.
 
 ## Local parameters
 
 As with {class}`~apbase.kriging.Kriging`, `radius`, `max_neighbors`, and the
 `min_neighbors` fallback bound each local search; the fallback is applied to
-the primary points. ICM and LMC apply these bounds independently to each
-variable, so a sparse secondary and a dense primary can use different
-neighborhoods at the same target.
+the primary points. ICM and LMC search each variable independently, with
+`max_secondary_neighbors` (default `max_neighbors`) bounding each secondary,
+so a sparse secondary and a dense primary can use different neighborhoods at
+the same target.

@@ -58,6 +58,9 @@ $$
 \sigma_K^2(x_0) = \sum_{i=1}^{n} \lambda_i \, \gamma(d_{i0}) + \mu
 $$
 
+O APbase não calcula nem devolve a variância de krigagem: o
+`Kriging.interpolate` devolve só as estimativas.
+
 Diferente dos pesos fixos do IDW, que só decaem com a distância, a krigagem
 leva em conta a redundância entre pontos amostrais. Pontos agrupados carregam
 informação em parte redundante, então a krigagem lhes dá menos peso somado do
