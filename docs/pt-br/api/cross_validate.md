@@ -368,7 +368,7 @@ MAE (erro absoluto médio), RMSE (raiz do erro quadrático médio) e R² (coefic
 
 :::
 
-:::{py:function} apbase.cross_validate.cross_validate_cokriging(x0, y0, z0, secondaries, *, max_points=500, seed=None, radius=None, max_neighbors=40, min_neighbors=3, n_structures=2)
+:::{py:function} apbase.cross_validate.cross_validate_cokriging(x0, y0, z0, secondaries, *, max_points=500, seed=None, radius=None, max_neighbors=40, min_neighbors=3, n_structures=2, max_colocation_dist=None, max_secondary_neighbors=None)
 
 Validação cruzada leave-one-out conjunta da cokrigagem colocalizada, do ICM e do LMC.
 
@@ -386,10 +386,12 @@ Cada um dos três modelos de corregionalização é ajustado uma vez com o conju
 - **max_neighbors** (*int*) – Limites de vizinhos compartilhados pelos três métodos.
 - **min_neighbors** (*int*) – Limites de vizinhos compartilhados pelos três métodos.
 - **n_structures** (*int*) – Número de estruturas aninhadas do LMC (S); veja {class}`CoKriging <apbase.cokriging.CoKriging>`.
+- **max_colocation_dist** (*float | None*) – Distância de pareamento das covariâncias cruzadas e limite de vizinhos das variáveis secundárias (ICM e LMC); veja {class}`CoKriging <apbase.cokriging.CoKriging>`.
+- **max_secondary_neighbors** (*int | None*) – Distância de pareamento das covariâncias cruzadas e limite de vizinhos das variáveis secundárias (ICM e LMC); veja {class}`CoKriging <apbase.cokriging.CoKriging>`.
 
 **Retorna**
 
-MAE (erro absoluto médio), RMSE (raiz do erro quadrático médio) e R² (coeficiente de determinação) por método em `by_method` (`"collocated"`, `"icm"`, `"lmc"`), além das predições por amostra e dos valores reais retirados (idênticos entre os métodos, avaliados nas mesmas amostras retiradas). Um método cujo modelo não pode ser ajustado fica de fora em vez de fazer a chamada falhar: a cokrigagem colocalizada quando uma variável secundária tem amostras de menos nas posições da primária, e o ICM ou o LMC quando o ajuste é rejeitado por não ser semidefinido positivo ou por ser inválido. O erro só é gerado quando nenhum método pode ser ajustado.
+MAE (erro absoluto médio), RMSE (raiz do erro quadrático médio) e R² (coeficiente de determinação) por método em `by_method` (`"collocated"`, `"icm"`, `"lmc"`), além das predições por amostra e dos valores reais retirados (idênticos entre os métodos, avaliados nas mesmas amostras retiradas). Um método cujo modelo não pode ser ajustado fica de fora em vez de fazer a chamada falhar: qualquer método quando uma variável secundária tem amostras de menos pareadas com a primária (veja `max_colocation_dist`), e o ICM ou o LMC quando o ajuste é rejeitado por não ser semidefinido positivo ou por ser inválido. O erro só é gerado quando nenhum método pode ser ajustado.
 
 **Tipo de retorno**
 

@@ -23,8 +23,10 @@ for your language.
 :sync: rust
 
 - Rust 1.85+ (edition 2024)
-- Linux on `x86_64` (`x86_64-unknown-linux-gnu`), the only target with
-  prebuilt native kernels today
+- Linux on `x86_64` (`x86_64-unknown-linux-gnu`), macOS on Apple Silicon
+  (`aarch64-apple-darwin`) and Intel (`x86_64-apple-darwin`), or Windows on
+  `x86_64` with the GNU toolchain (`x86_64-pc-windows-gnu`); the MSVC toolchain
+  is not supported yet
 - GEOS 3.12 or newer and PROJ 9.6.2 or newer (see the note below for an older
   PROJ), plus the Fortran, OpenMP, and BLAS runtime used by the native kernels
 
@@ -54,23 +56,51 @@ pip install git+https://github.com/ap-base/apbase-python.git
 ::::{tab-item} Rust
 :sync: rust
 
-Install the system libraries, then add the crate:
+Install the system libraries, then add the crate. On Linux (Ubuntu/Debian):
 
 ```bash
 sudo apt install gfortran libopenblas-dev libgeos-dev libproj-dev pkg-config
 cargo add apbase
 ```
 
-or declare it in `Cargo.toml`:
+On macOS, with Homebrew:
+
+```bash
+brew install gcc openblas geos proj pkgconf
+cargo add apbase
+```
+
+On Windows, install [MSYS2](https://www.msys2.org) and, in its MINGW64 shell:
+
+```bash
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-openblas \
+  mingw-w64-x86_64-geos mingw-w64-x86_64-proj mingw-w64-x86_64-pkgconf
+```
+
+Then build with the GNU Rust toolchain, with `C:\msys64\mingw64\bin` first on
+`PATH`:
+
+```powershell
+rustup toolchain install stable-x86_64-pc-windows-gnu
+rustup default stable-x86_64-pc-windows-gnu
+$env:PKG_CONFIG = "pkgconf"
+cargo add apbase
+```
+
+Built programs need the DLLs from `mingw64\bin` (libgfortran, libgomp,
+OpenBLAS, GEOS, PROJ) on `PATH` or next to the executable.
+
+Instead of `cargo add`, you can declare it in `Cargo.toml`:
 
 ```toml
 [dependencies]
-apbase = "0.1.4"
+apbase = "0.2.0"
 ```
 
 The Fortran kernels ship inside the crate as a static library, so no Fortran
-compiler runs during the build. `gfortran` and `libopenblas-dev` are needed
-only for the link step, which looks for `libgfortran.so` and `libopenblas.so`.
+compiler runs during the build. The Fortran and OpenBLAS packages above are
+needed only for the link step, which looks for libgfortran, libgomp, and
+OpenBLAS.
 
 :::{note}
 If the system PROJ is older than 9.6.2, the `proj-sys` dependency builds PROJ
@@ -80,10 +110,12 @@ from source, which also needs `cmake`, `sqlite3`, `libsqlite3-dev`, and
 also carries the packaged `apbase-<version>.crate`.
 :::
 
-Two build-time environment variables change what is linked:
+Three build-time environment variables change what is linked:
 `APBASE_BLAS_LIBS` takes space-separated BLAS/LAPACK libraries to link instead
-of OpenBLAS, and `APBASE_NATIVE_LIB_DIR` points to a directory with your own
-`libapbase_native.a` for development builds.
+of OpenBLAS (`-L<dir>` entries add a search directory),
+`APBASE_FORTRAN_LIB_DIR` points to the directory with libgfortran and libgomp
+when the linker does not find them, and `APBASE_NATIVE_LIB_DIR` points to a
+directory with your own `libapbase_native.a` for development builds.
 
 ::::
 

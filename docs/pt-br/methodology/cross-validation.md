@@ -19,11 +19,15 @@ Para cada ponto amostral avaliado $x_i$:
 Repetir isso para cada ponto avaliado gera os erros de predição
 $e_i = z_i - \hat{z}_i$. Como cada ponto é predito sem o próprio valor, esses
 erros estimam o quão bem o método prediria uma observação nova, ainda não
-vista.
+vista. O semivariograma, e com ele o modelo da krigagem e o raio de busca
+padrão, é ajustado uma vez com todos os pontos finitos e não é ajustado de
+novo para cada ponto retirado; só a busca de vizinhos deixa $x_i$ de fora.
 
 ## Métricas de erro
 
-Dados $m$ pontos avaliados:
+Dados os $m$ pontos avaliados em que o método produziu uma predição finita,
+com $\bar{z}$ a média dos seus valores verdadeiros ($R^2$ é NaN quando esses
+valores são todos iguais):
 
 $$
 \mathrm{MAE} = \frac{1}{m}\sum_{i=1}^{m} \left| e_i \right|
@@ -44,15 +48,18 @@ prever a média.
 
 ## Semivariograma e vizinhança compartilhados
 
-Os dois métodos usam o mesmo raio de busca e o mesmo índice espacial. O raio
-vem de um único semivariograma ajustado, que também é o modelo da krigagem.
-Por isso, as diferenças de MAE, RMSE e $R^2$ refletem o método de
-interpolação, e não uma diferença de configuração.
+Os dois métodos usam o mesmo raio de busca, o mesmo índice espacial e os mesmos
+vizinhos para cada ponto retirado. O raio vem do semivariograma que também é o
+modelo da krigagem, ajustado a todos os pontos finitos ou informado por
+`model_values`; um `radius` explícito o substitui. Por isso, as diferenças de
+MAE, RMSE e $R^2$ refletem o método de interpolação, e não uma diferença de
+configuração.
 
 ## Tempo de execução limitado
 
-Avaliar todos os pontos amostrais exige $n$ ajustes leave-one-out, um por
-ponto, o que pode sair caro em conjuntos de dados grandes. `max_points` limita
+Avaliar todos os pontos amostrais exige $n$ predições leave-one-out por
+método, cada uma com a sua busca de vizinhos e a sua solução local, o que pode
+sair caro em conjuntos de dados grandes. `max_points` limita
 o número de pontos testados. Se houver mais pontos finitos do que o limite, o
 APbase sorteia uma subamostra aleatória de tamanho `max_points`, usando `seed`
 quando informada. Isso mantém o tempo de execução limitado à medida que o
@@ -67,11 +74,13 @@ de cada método é ajustado uma vez com o conjunto de dados completo e mantido
 fixo durante todo o processo, do mesmo jeito que o modelo é usado na prática.
 Os três métodos compartilham um índice espacial primário e um raio, então os
 resultados continuam diretamente comparáveis. Um método cujo modelo não pode
-ser ajustado fica de fora em vez de interromper a comparação: a cokrigagem
-colocalizada, quando uma variável secundária tem poucas amostras nos locais da
-primária para estimar a sua correlação; e o ICM ou o LMC, quando o ajuste é
-rejeitado por não ser semidefinido positivo ou por ser inválido. Só é gerado
-um erro quando nenhum método pode ser ajustado.
+ser ajustado fica de fora em vez de interromper a comparação: o ICM ou o LMC,
+quando o ajuste é rejeitado por não ser semidefinido positivo ou por ser
+inválido. Uma variável secundária com poucas amostras pareadas com a primária
+(veja `max_colocation_dist` em {doc}`../user-guide/cokriging`) impede os três
+métodos, já que cada um precisa da correlação dela com a primária, então a
+chamada gera um `ValueError`. Só é gerado um erro quando nenhum método pode
+ser ajustado.
 
 ## Selecionando o melhor método
 
@@ -80,10 +89,10 @@ Ela compara as métricas (o RMSE, por padrão) nas amostras em que *todos* os
 métodos candidatos produziram uma predição finita, e vence a menor; um empate
 entre IDW e krigagem fica com o IDW. Com o resultado de um
 `cross_validate(...)` simples, ela compara o IDW diretamente com a krigagem e
-devolve o tipo de resultado de dois métodos. Com mais de dois métodos, como o
-`cv.by_method` da cokrigagem, ela primeiro identifica o vencedor e o segundo
-colocado pelas estimativas pontuais e depois usa um bootstrap pareado para
-esse par.
+devolve o tipo de resultado de dois métodos. Com qualquer mapeamento de dois
+ou mais métodos, como o `cv.by_method` da cokrigagem, ela primeiro identifica o
+vencedor e o segundo colocado pelas estimativas pontuais (um empate fica com o
+método listado primeiro) e depois usa um bootstrap pareado para esse par.
 
 O bootstrap pareado estima se a vantagem do vencedor sobre o segundo colocado
 é provavelmente real, e não um efeito de quais pontos foram retirados.

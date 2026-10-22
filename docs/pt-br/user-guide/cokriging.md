@@ -31,12 +31,12 @@ screened.report      # rho, p_value, n_pairs, decision, status, ... de cada cand
 secondaries = screened.selected   # ex.: {"ndvi": (xn, yn, zn)}
 
 # 2. Ajuste e interpolação
-ck = CoKriging(method="icm", max_neighbors=40, min_neighbors=3)
+ck = CoKriging(method="icm", max_neighbors=40, min_neighbors=3, max_colocation_dist=30.0)
 ck.fit(x0, y0, z0, secondaries)
 z_targets = ck.interpolate(targets)   # targets: array (n, 2)
 
 # 3. Confirma pela LOO-CV que ela supera a krigagem sem variáveis secundárias
-cv = cross_validate_cokriging(x0, y0, z0, secondaries)
+cv = cross_validate_cokriging(x0, y0, z0, secondaries, max_colocation_dist=30.0)
 best = select_best_model(cv.by_method)
 best.method, best.significant
 ```
@@ -72,13 +72,18 @@ let mut ck = CoKriging::new(CoKrigingOptions {
     method: CoKrigingMethod::Icm,
     max_neighbors: 40,
     min_neighbors: 3,
+    max_colocation_dist: Some(30.0),
     ..Default::default()
 })?;
 ck.fit(&x0, &y0, &z0, &secondaries)?;
 let z_targets = ck.interpolate(&targets)?; // targets: array (n, 2)
 
 // 3. Confirma pela LOO-CV que ela supera a krigagem sem variáveis secundárias
-let cv = cross_validate_cokriging(&x0, &y0, &z0, &secondaries, CrossValidateCokrigingOptions::default())?;
+let cv = cross_validate_cokriging(
+    &x0, &y0, &z0,
+    &secondaries,
+    CrossValidateCokrigingOptions { max_colocation_dist: Some(30.0), ..Default::default() },
+)?;
 let best = select_best_model(&cv.by_method, SelectBestModelOptions::default())?;
 (best.method, best.significant);
 ```
@@ -96,7 +101,9 @@ seleção compara valores primários e secundários em pares e, com o padrão
 `None`, um par só se forma onde as coordenadas são idênticas. Sem esse
 parâmetro, nenhum par se forma e toda candidata é rejeitada com o status
 `"insufficient sample"`. Use uma distância da ordem do espaçamento de
-amostragem da variável secundária.
+amostragem da variável secundária. O `CoKriging` e o `cross_validate_cokriging`
+pareiam as amostras do mesmo jeito para estimar as covariâncias cruzadas, então
+passe a mesma distância para eles; sem pares, eles geram um `ValueError`.
 
 ## Entradas principais
 
@@ -202,7 +209,9 @@ registrar por que uma variável foi descartada.
 :sync: python
 
 ```python
-ck = CoKriging(method="icm", radius=None, max_neighbors=40, min_neighbors=3)
+ck = CoKriging(
+    method="icm", radius=None, max_neighbors=40, min_neighbors=3, max_colocation_dist=30.0
+)
 ck.fit(x0, y0, z0, secondaries)
 estimates = ck.interpolate(targets)
 ```
@@ -218,6 +227,7 @@ let mut ck = CoKriging::new(CoKrigingOptions {
     radius: None,
     max_neighbors: 40,
     min_neighbors: 3,
+    max_colocation_dist: Some(30.0),
     ..Default::default()
 })?;
 ck.fit(&x0, &y0, &z0, &secondaries)?;
@@ -232,22 +242,36 @@ let estimates = ck.interpolate(&targets)?;
 
 `method` : {"collocated", "icm", "lmc"}, padrão `"collocated"`
 : Modelo de cokrigagem. O padrão `"collocated"` é o mais barato, mas tem os
-  requisitos descritos abaixo. Quando eles não são atendidos, use `"icm"`: ele
-  não tem nenhum deles nem formas por estrutura para ajustar.
+  dois requisitos descritos abaixo. Quando eles não são atendidos, use
+  `"icm"`: ele não tem nenhum dos dois nem formas por estrutura para ajustar.
 
 `radius` : float, opcional
 : Raio de busca local. Se for omitido, o APbase o deriva do semivariograma da
   variável primária.
 
 `max_neighbors`, `min_neighbors` : int
-: Limites de vizinhos. Para `"icm"` e `"lmc"`, eles limitam a busca de
-  vizinhos de cada variável.
+: Limites de vizinhos da primária. Para `"icm"` e `"lmc"`, cada variável
+  secundária busca os próprios vizinhos dentro de `radius`, até
+  `max_secondary_neighbors`.
 
 `n_structures` : int, padrão `2`
 : Número de estruturas aninhadas do LMC. Usado só por `"lmc"`.
 
 `model_values` : array_like, opcional
 : Valores de modelo pré-calculados. Só `"collocated"` aceita.
+
+`max_colocation_dist` : float, opcional
+: Distância dentro da qual uma amostra da primária é pareada com o ponto mais
+  próximo da variável secundária para estimar as covariâncias cruzadas. `None`
+  pareia só coordenadas idênticas; variáveis secundárias heterotópicas, como
+  rasters, precisam de uma distância (por exemplo, metade da diagonal da
+  célula).
+
+`max_secondary_neighbors` : int, opcional
+: Número máximo de vizinhos de cada variável secundária por ponto a estimar,
+  só para `"icm"` e `"lmc"`. `None` usa `max_neighbors`. Variáveis secundárias
+  densas precisam de bem menos vizinhos que a primária, já que as mais próximas
+  encobrem as demais.
 
 `ck.model_params` mostra os parâmetros ajustados de forma legível (a estrutura
 muda conforme o método; veja a docstring da classe); `ck.model_values` dá o
@@ -262,11 +286,15 @@ da classe). Se for preciso, interpole antes uma variável secundária esparsa
 numa grade densa o suficiente. Ela também depende da hipótese do Modelo de
 Markov 1 (MM1): assume-se que o valor secundário no ponto a estimar torna
 redundantes os dados secundários mais distantes (veja
-{doc}`../methodology/cokriging`). Por fim, a cokrigagem colocalizada estima a
-correlação de cada variável secundária a partir de amostras nas mesmas
-coordenadas da primária. Se uma secundária tiver poucas delas, o `fit` gera um
-`ValueError`; use `"icm"` ou `"lmc"` para esses dados heterotópicos. ICM e LMC
-não têm nenhum desses requisitos.
+{doc}`../methodology/cokriging`). ICM e LMC não têm nenhum desses dois
+requisitos.
+
+Todos os métodos estimam as covariâncias cruzadas a partir de amostras da
+primária pareadas com pontos da variável secundária: nas mesmas coordenadas
+ou, com `max_colocation_dist`, o ponto secundário mais próximo dentro dessa
+distância. Se uma secundária tiver poucos pares, o `fit` gera um `ValueError`
+com o nome dela; para dados heterotópicos, como um raster, defina
+`max_colocation_dist`.
 
 ## Etapa 3: validação cruzada
 
@@ -282,7 +310,7 @@ de fato supera a krigagem sem variáveis secundárias *neste* conjunto de dados.
 : Semente usada quando a validação sorteia um subconjunto dos pontos
   primários.
 
-`radius`, `max_neighbors`, `min_neighbors`, `n_structures`
+`radius`, `max_neighbors`, `min_neighbors`, `n_structures`, `max_colocation_dist`, `max_secondary_neighbors`
 : Mesmo significado que no `CoKriging`.
 
 ::::{tab-set}
@@ -293,7 +321,9 @@ de fato supera a krigagem sem variáveis secundárias *neste* conjunto de dados.
 ```python
 from apbase.cross_validate import cross_validate_cokriging, select_best_model
 
-cv = cross_validate_cokriging(x0, y0, z0, secondaries, max_neighbors=40, min_neighbors=3)
+cv = cross_validate_cokriging(
+    x0, y0, z0, secondaries, max_neighbors=40, min_neighbors=3, max_colocation_dist=30.0
+)
 {name: result.rmse for name, result in cv.by_method.items()}
 
 best = select_best_model(cv.by_method)
@@ -314,7 +344,12 @@ use apbase::cross_validate::{
 let cv = cross_validate_cokriging(
     &x0, &y0, &z0,
     &secondaries,
-    CrossValidateCokrigingOptions { max_neighbors: 40, min_neighbors: 3, ..Default::default() },
+    CrossValidateCokrigingOptions {
+        max_neighbors: 40,
+        min_neighbors: 3,
+        max_colocation_dist: Some(30.0),
+        ..Default::default()
+    },
 )?;
 for (name, result) in &cv.by_method {
     println!("{name}: {}", result.rmse);

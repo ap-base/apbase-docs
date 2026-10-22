@@ -19,11 +19,15 @@ For each evaluated source point $x_i$:
 Repeating this for every evaluated point gives prediction errors
 $e_i = z_i - \hat{z}_i$. Because each point is predicted without its own value,
 these errors estimate how well the method would predict a new, unseen
-observation.
+observation. The variogram, and with it the kriging model and the default
+search radius, is fitted once from all finite points and is not refitted for
+each held-out point; only the neighbor search leaves $x_i$ out.
 
 ## Error metrics
 
-Given $m$ evaluated points:
+Given the $m$ evaluated points where the method produced a finite prediction,
+with $\bar{z}$ the mean of their true values ($R^2$ is NaN when those values
+are all equal):
 
 $$
 \mathrm{MAE} = \frac{1}{m}\sum_{i=1}^{m} \left| e_i \right|
@@ -43,15 +47,17 @@ always predicting the mean.
 
 ## Shared variogram, shared neighborhood
 
-Both methods use the same search radius and spatial index. The radius comes
-from one fitted variogram, which is also the kriging model. Differences in
-MAE, RMSE, and $R^2$ therefore reflect the interpolation method rather than a
-difference in configuration.
+Both methods use the same search radius, spatial index, and neighbors for each
+held-out point. The radius comes from the variogram that is also the kriging
+model, fitted to all finite points or given through `model_values`; an explicit
+`radius` replaces it. Differences in MAE, RMSE, and $R^2$ therefore reflect the
+interpolation method rather than a difference in configuration.
 
 ## Bounded runtime
 
-Evaluating every source point requires $n$ leave-one-out fits, one per point,
-which can be expensive for large datasets. `max_points` caps the number of
+Evaluating every source point requires $n$ leave-one-out predictions per
+method, each with its own neighbor search and local solve, which can be
+expensive for large datasets. `max_points` caps the number of
 points tested. If there are more finite points than the limit, APbase draws a
 random subsample of size `max_points`, using `seed` when provided. This keeps
 runtime bounded as the dataset grows.
@@ -65,10 +71,12 @@ coregionalization model is fitted once from the full dataset and kept fixed
 throughout, matching how the model is used in practice. All three methods
 share one primary spatial index and one radius, so their results remain
 directly comparable. A method whose model cannot be fitted is left out instead
-of failing the comparison: collocated cokriging when a secondary has too few
-samples at the primary locations to estimate its correlation, and ICM or LMC
-when the fit is rejected as non-positive-semidefinite or invalid. An error is
-raised only when no method can be fitted.
+of failing the comparison: ICM or LMC when the fit is rejected as
+non-positive-semidefinite or invalid. A secondary with too few samples paired
+with the primary (see `max_colocation_dist` in {doc}`../user-guide/cokriging`)
+blocks all three methods, since each needs its correlation with the primary,
+so the call raises a `ValueError`. An error is raised only when no method can
+be fitted.
 
 ## Selecting the best method
 
@@ -77,9 +85,10 @@ compares scores (RMSE by default) on the samples where *every* candidate
 method produced a finite prediction, and the lower score wins; a tie between
 IDW and kriging goes to IDW. Given a plain `cross_validate(...)` result, it
 compares IDW against kriging directly and returns the two-method result type.
-With more than two methods, such as `cv.by_method` from cokriging, it first
-identifies the winner and runner-up from the point estimates, then uses a
-paired bootstrap for that pair.
+Given any mapping of two or more methods, such as `cv.by_method` from
+cokriging, it first identifies the winner and runner-up from the point
+estimates (a tie goes to the method listed first), then uses a paired
+bootstrap for that pair.
 
 The paired bootstrap estimates whether the margin between the winner and
 runner-up is likely genuine rather than an artifact of which points were held

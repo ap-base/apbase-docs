@@ -44,12 +44,19 @@ variáveis já foram padronizadas desse jeito.
 
 ## O sistema em blocos (ICM e LMC)
 
-No **ICM** e no **LMC**, cada variável busca na sua própria vizinhança local.
-`radius` e `max_neighbors` valem para todas as variáveis, não só para a
-primária, então as variáveis secundárias não precisam compartilhar os locais
-de amostragem da primária. Escrevendo $C_{uv}(h)$ para a covariância cruzada
-ajustada entre as variáveis $u$ e $v$ na separação $h$, os pesos e o
-multiplicador de Lagrange $\mu$ resolvem
+No **ICM** e no **LMC**, cada variável busca na sua própria vizinhança local
+dentro de `radius`: a primária até `max_neighbors`, cada variável secundária
+até `max_secondary_neighbors` (`max_neighbors` quando não é definido). A busca
+não exige que as variáveis secundárias compartilhem os locais de amostragem da
+primária, mas o ajuste das covariâncias cruzadas precisa de pares para cada
+par de variáveis, inclusive entre variáveis secundárias: amostras associadas a
+um ponto da outra variável nas mesmas coordenadas ou, com
+`max_colocation_dist`, ao mais próximo dentro dessa distância. Uma variável
+secundária com menos de dois pares com a primária gera um `ValueError`; um par
+de variáveis cujos pares preenchem menos de três classes de distância faz o
+ajuste gerar `CoKrigingInvalidModelError`. Escrevendo
+$C_{uv}(h)$ para a covariância cruzada ajustada entre as variáveis $u$ e $v$
+na separação $h$, os pesos e o multiplicador de Lagrange $\mu$ resolvem
 
 $$
 \begin{bmatrix}
@@ -114,8 +121,11 @@ dados com pouco ruído.
 
 **LMC (modelo linear de corregionalização completo).** O LMC usa $S$
 estruturas aninhadas (índice $0$ = efeito pepita, $1, \dots, S{-}1$
-contínuas, com alcances espaçados geometricamente), cada uma com a sua própria
-matriz de coeficientes $(K+1)\times(K+1)$ $\mathbf{B}^{(l)}$:
+contínuas), cada uma com a sua própria matriz de coeficientes
+$(K+1)\times(K+1)$ $\mathbf{B}^{(l)}$. As estruturas contínuas compartilham uma
+forma (esférica, exponencial ou gaussiana, escolhida como no ICM) com alcances
+igualmente espaçados $a\,l/(S{-}1)$, em que $a$ é o alcance compartilhado da
+mesma busca conjunta do ICM, então a última estrutura tem alcance $a$:
 
 $$
 C_{uv}(h) = \begin{cases}
@@ -136,9 +146,17 @@ mantendo as outras fixas, e depois projeta a sua matriz no cone das matrizes
 semidefinidas positivas: autovalores negativos são fixados em 0 e a matriz é
 reconstruída. Diferente do ICM, a semidefinição positiva é, portanto,
 garantida por construção a cada varredura, em vez de verificada depois do
-ajuste. Em comparação com o ICM, o LMC troca a forma única compartilhada por
-$S{-}1$ estruturas contínuas com formas independentes, ao custo de um ajuste
-iterativo mais pesado.
+ajuste. Em comparação com o ICM, o LMC divide a estrutura única compartilhada
+em $S{-}1$ estruturas contínuas da mesma forma com alcances diferentes, cada
+uma com a sua própria matriz de coeficientes, ao custo de um ajuste iterativo
+mais pesado.
+
+Com a forma gaussiana, o ICM e o LMC dão a cada variável, e a cokrigagem
+colocalizada dá à primária, um efeito pepita de pelo menos 0,01% do seu patamar
+ao montar o sistema (também na validação cruzada). Sem efeito pepita, um modelo
+gaussiano sobre pontos amostrais próximos, como os pixels de um raster, deixa o
+sistema singular ou com pesos explosivos. `model_params` continua mostrando os
+valores ajustados.
 
 ## Cokrigagem colocalizada (MM1)
 
@@ -154,36 +172,45 @@ múltiplo fixo da covariância da própria primária:
 
 $$
 C_{0u}(h) = \rho_u \, C_{00}(h) \qquad\qquad
-C_{uv}(0) = \rho_u \rho_v \, C_{00}(0) \; (u, v \geq 1)
+C_{uv}(0) = \rho_u \rho_v \, C_{00}(0) \; (u \neq v;\ u, v \geq 1)
 $$
+
+e $C_{uu}(0) = C_{00}(0)$, já que cada variável secundária padronizada tem a
+variância da primária.
 
 em que $\rho_u$ é a correlação entre a primária e a secundária obtida pelo
 {class}`~apbase.cross_variogram.CrossVariogram`. O sistema passa a ter uma
-linha por vizinho primário, uma por variável secundária e uma linha de
-restrição, o que é bem menor que o sistema em blocos completo do ICM/LMC.
+linha por vizinho primário, uma por variável secundária com um ponto dentro de
+`radius` e uma linha de restrição, o que é bem menor que o sistema em blocos
+completo do ICM/LMC.
 
-A troca tem dois lados. O valor secundário precisa estar disponível em todos
-os pontos a estimar da interpolação, então uma variável secundária esparsa
-precisa antes ser interpolada num conjunto de pontos mais denso. E o
-resultado só é tão bom quanto a própria hipótese MM1.
+A troca tem dois lados. O valor colocalizado é o ponto da variável secundária
+mais próximo dentro de `radius`, usado como se estivesse no ponto a estimar.
+Uma variável secundária sem nenhum ponto dentro de `radius` fica fora do
+sistema desse ponto e, se não sobrar nenhuma, o ponto recebe a krigagem
+ordinária da primária; por isso, convém interpolar antes uma variável
+secundária esparsa num conjunto de pontos mais denso. E o resultado só é tão
+bom quanto a própria hipótese MM1.
 
 ## Escolhendo um método
 
 | | Secundárias precisam de busca local própria | Tamanho do sistema por ponto a estimar | Ajuste da corregionalização |
 |---|---|---|---|
-| Colocalizada | Não: um valor colocalizado no ponto a estimar | vizinhos primários + $K$ + 1 | $\rho_u$ em forma fechada por secundária |
+| Colocalizada | Não: um valor colocalizado no ponto a estimar | vizinhos primários + até $K$ + 1 | $\rho_u$ em forma fechada por secundária |
 | ICM | Sim | $\sum_u n_u$ + 1 | uma forma compartilhada, ajuste conjunto dos pares |
-| LMC | Sim | $\sum_u n_u$ + 1 | $S$ formas, iterativo de Goulard e Voltz |
+| LMC | Sim | $\sum_u n_u$ + 1 | $S$ estruturas de uma só forma, iterativo de Goulard e Voltz |
 
-A colocalizada é a opção mais barata quando os seus requisitos acima são
-atendidos. O ICM capta a estrutura secundária com vários pontos usando uma
-única forma compartilhada. O LMC permite uma forma diferente para cada
-estrutura quando uma só não basta, com um custo de ajuste maior.
+A colocalizada é a opção mais barata quando as trocas acima são aceitáveis. O
+ICM capta a estrutura secundária com vários pontos usando uma única estrutura
+compartilhada. O LMC acrescenta estruturas com vários alcances, cada uma com a
+sua própria matriz de coeficientes, quando uma só não basta, com um custo de
+ajuste maior.
 
 ## Parâmetros locais
 
 Assim como no {class}`~apbase.kriging.Kriging`, `radius`, `max_neighbors` e o
 recurso de `min_neighbors` limitam cada busca local; o recurso é aplicado aos
-pontos primários. O ICM e o LMC aplicam esses limites de forma independente a
-cada variável, então uma variável secundária esparsa e uma primária densa
-podem usar vizinhanças diferentes no mesmo ponto a estimar.
+pontos primários. O ICM e o LMC buscam cada variável de forma independente,
+com `max_secondary_neighbors` (padrão `max_neighbors`) limitando cada variável
+secundária, então uma variável secundária esparsa e uma primária densa podem
+usar vizinhanças diferentes no mesmo ponto a estimar.
